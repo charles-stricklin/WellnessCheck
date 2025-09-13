@@ -1,0 +1,24 @@
+# Ignore Xcode build artifacts and settings
+DerivedData/
+xcuserdata/
+
+# Ignore Swift Package Manager
+.build/
+
+# Ignore CocoaPods
+Pods/
+
+# Ignore Carthage
+Carthage/
+
+# Ignore fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Ignore personal config
+*.xconfig
+
+# Ignore design assets
+Design/
