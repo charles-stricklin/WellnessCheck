@@ -1,0 +1,47 @@
+# ==========================
+# WellnessCheck .gitattributes
+# ==========================
+
+# Default behavior: normalize line endings to LF
+* text=auto eol=lf
+
+# Source code (force LF line endings)
+*.swift text eol=lf
+*.h text eol=lf
+*.m text eol=lf
+*.mm text eol=lf
+*.cpp text eol=lf
+*.c text eol=lf
+
+# Config & JSON
+*.json text eol=lf
+*.plist text eol=lf
+*.xcconfig text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Scripts (keep LF)
+*.sh text eol=lf
+
+# Markdown & text docs
+*.md text eol=lf
+*.txt text eol=lf
+
+# Binary files (no line ending conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.sketch binary
+*.svg binary
+*.pdf binary
+
+# Xcode project files (leave untouched)
+*.pbxproj text eol=lf merge=union
+*.xcworkspace/** -text
+*.xcodeproj/** -text
+
+# ==========================
+# End of file
+# ==========================
