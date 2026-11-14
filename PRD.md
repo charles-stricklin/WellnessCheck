@@ -2,7 +2,7 @@
 
 **Product Name:** WellnessCheck  
 **Platform:** iPhone (Native Swift / SwiftUI). iPad and Apple Watch planned for later versions.  
-**Design System:** Obsidian Clinical (Dark Mode • Charcoal `#10131a` • Clinical Teal `#00d2b4` • SF Pro Typography)  
+**Design System:** Obsidian Clinical (Light / Dark / Auto • Charcoal `#10131a` • Clinical Teal `#00d2b4` • SF Pro Typography)  
 **Organization:** Stricklin Development, LLC  
 **Regulatory Status:** Personal health record-keeping app. Not a medical device; does not diagnose, treat or monitor any condition.  
 
@@ -10,9 +10,9 @@
 
 ## 1. Executive Summary & Vision
 
-**WellnessCheck** is a clinical-style, dark-mode personal health tracking application designed for patients managing chronic conditions, tracking critical biometrics, and collaborating directly with care teams and physicians. 
+**WellnessCheck** is a clinical-style personal health tracking application designed for patients managing chronic conditions, tracking critical biometrics, and collaborating directly with care teams and physicians. 
 
-By marrying high-contrast dark clinical aesthetics with standard iOS inset-grouped interface conventions, WellnessCheck delivers calm, legible, and trustworthy vital tracking, medication adherence, appointment scheduling, and shareable doctor reports, with Apple Health as the bridge to devices and medical records.
+By marrying high-contrast clinical aesthetics with standard iOS inset-grouped interface conventions, WellnessCheck delivers calm, legible, and trustworthy vital tracking, medication adherence, appointment scheduling, and shareable doctor reports, with Apple Health as the bridge to devices and medical records.
 
 ---
 
@@ -68,11 +68,14 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 - **Schedule Groups:** Time-based bucketing (Morning, Afternoon, Evening, Bedtime).
 - **Clinical Badges:** Dosage strength indicators, visual pill-split icons, glowing schedule status tags.
 - **Inventory Tracking:** Low-supply reminders telling the user it is time to call the pharmacy.
+- **Medication Detail:** Optional photo of the pill (so it can be recognized at a glance), shape, color and imprint; generic name; what it is for; prescribing doctor (linked to the Doctors tab); refills remaining; dosage strength with a note when the tablet is scored for splitting; special instructions (e.g., take with food, avoid grapefruit).
+- **Log Dose:** One-tap "Log Dose Taken" button, showing when the last dose was logged.
 
 ### 4.5. Appointments Management
 - **Chronological Timeline:** Upcoming, completed, and canceled clinical visits.
 - **Card Metadata:** Provider name, clinic location, specialty badge, calendar synchronization.
 - **Action Triggers:** Add new visit floating action button (FAB) or navigation header action.
+- **Visit Card Actions:** Add to Calendar, Directions (opens Apple Maps), per-visit reminder (e.g., 2 hours before), and prep notes (e.g., fasting instructions, what to bring, questions to ask).
 
 ### 4.6. Doctor Management
 - **Care Team Roster:** Inset list of the user's own practitioners, entered by the user, with optional photos, specialty tags, phone/email actions, and hospital affiliations.
@@ -86,7 +89,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
   - Allergies list (e.g., `Penicillin`, `Pollen`) rendered in clean body styling.
   - Emergency Contact designation (name, relationship, phone).
 - **External Integrations:** Apple Health connection (readings from devices such as blood pressure cuffs, plus Health Records including VA), iCloud backup.
-- **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders, Appearance & Accessibility options.
+- **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders (e.g., morning glucose and blood pressure, evening blood pressure, a prompt two hours after meals), Appearance (Light / Dark / Auto) & Accessibility options.
 - **Units:** Blood glucose in mg/dL, temperature in °F and weight in lb by default; each can be switched in Settings (mmol/L, °C, kg). Readings are stored in one standard unit and converted for display, so switching never alters past data.
 
 ### 4.8. About & System Architecture
@@ -99,7 +102,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 
 ## 5. Design System Tokens: Obsidian Clinical
 
-- **Theme Mode:** Dark Mode Only.
+- **Theme Mode:** Light, Dark, or Auto (follows the iPhone's setting), chosen in Settings. The palette below is the dark theme; the light theme keeps Clinical Teal as the accent on iOS system light backgrounds (exact values to be defined).
 - **Palette:**
   - `Background / Surface Dim`: `#10131a`
   - `Surface Container Low`: `#191c22`
