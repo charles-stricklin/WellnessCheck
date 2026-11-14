@@ -12,7 +12,7 @@
 
 **WellnessCheck** is a clinical-style, dark-mode personal health tracking application designed for patients managing chronic conditions, tracking critical biometrics, and collaborating directly with care teams and physicians. 
 
-By marrying high-contrast dark clinical aesthetics with standard iOS inset-grouped interface conventions, WellnessCheck delivers calm, legible, and trustworthy vital tracking, medication adherence, appointment scheduling, and VA/EHR health record synchronization.
+By marrying high-contrast dark clinical aesthetics with standard iOS inset-grouped interface conventions, WellnessCheck delivers calm, legible, and trustworthy vital tracking, medication adherence, appointment scheduling, and shareable doctor reports, with Apple Health as the bridge to devices and medical records.
 
 ---
 
@@ -23,7 +23,7 @@ By marrying high-contrast dark clinical aesthetics with standard iOS inset-group
 2. **Caregiver / Family Manager**
    - *Needs:* Profile switching between self and family dependents, emergency contact accessibility, exportable doctor reports.
 3. **Clinical / Provider Coordination**
-   - *Needs:* Direct physician directory, automated clinical summary exports, synchronization with electronic health records (Apple Health, VA Health, EHR systems).
+   - *Needs:* Direct physician directory, shareable PDF summaries, and access to medical records through Apple Health (including VA records).
 
 ---
 
@@ -37,7 +37,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 | **Tab 2** | **Appointments** | `calendar` | Chronological doctor visits, check-ups, location routing, prep notes. |
 | **Tab 3** | **Meds** | `pills` | Medication schedule (Morning, Noon, Evening, Bedtime), inventory alerts, split-pill badges. |
 | **Tab 4** | **Doctors** | `stethoscope` | Care team directory, primary care physicians, specialists, instant contact. |
-| **Tab 5** | **Settings** | `gearshape` | Medical profile, emergency contacts, VA/EHR integrations, biometric security, notifications. |
+| **Tab 5** | **Settings** | `gearshape` | Medical profile, emergency contacts, Apple Health connection, biometric security, notifications. |
 
 ---
 
@@ -45,7 +45,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 
 ### 4.1. Welcome & Onboarding
 - **Emblem & Branding:** Glowing ECG pulse badge with `#00d2b4` ambient glow.
-- **Value Proposition:** Accurate, organized tracking, secure cloud sync, real-time doctor alerts.
+- **Value Proposition:** Accurate, organized tracking, iCloud backup, and reports to share with your doctor.
 - **Primary CTA:** "Get Started" navigating seamlessly into health setup.
 - **Security Footer:** End-to-end encryption and a plain-language privacy commitment.
 
@@ -67,7 +67,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 ### 4.4. Medication Management
 - **Schedule Groups:** Time-based bucketing (Morning, Afternoon, Evening, Bedtime).
 - **Clinical Badges:** Dosage strength indicators, visual pill-split icons, glowing schedule status tags.
-- **Inventory Tracking:** Low-supply threshold warnings with automated pharmacy reorder triggers.
+- **Inventory Tracking:** Low-supply reminders telling the user it is time to call the pharmacy.
 
 ### 4.5. Appointments Management
 - **Chronological Timeline:** Upcoming, completed, and canceled clinical visits.
@@ -75,7 +75,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 - **Action Triggers:** Add new visit floating action button (FAB) or navigation header action.
 
 ### 4.6. Doctor Management
-- **Care Team Roster:** Inset list of verified practitioners with profile headshots, specialty tags, phone/email actions, and hospital affiliations.
+- **Care Team Roster:** Inset list of the user's own practitioners, entered by the user, with optional photos, specialty tags, phone/email actions, and hospital affiliations.
 - **Header Profile Bar:** Persistent user profile chip with frosted backdrop.
 
 ### 4.7. Settings & Medical Profile
@@ -85,7 +85,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
   - Date of Birth with age calculation (e.g., `March 3, 1955 (71 yrs)`).
   - Allergies list (e.g., `Penicillin`, `Pollen`) rendered in clean body styling.
   - Emergency Contact designation (name, relationship, phone).
-- **External Integrations:** VA Account Connection (OAuth2 / FHIR credentials), Apple Health sync.
+- **External Integrations:** Apple Health connection (readings from devices such as blood pressure cuffs, plus Health Records including VA), iCloud backup.
 - **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders, Appearance & Accessibility options.
 
 ### 4.8. About & System Architecture
@@ -121,7 +121,29 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
    - Granular HealthKit sharing opt-in and revocation.
 2. **Performance:**
    - 60 FPS scrolling across long vitals history and appointment timelines.
-   - Low-latency Bluetooth LE connection with peripheral biometric sensors.
 3. **Accessibility:**
    - Dynamic Type support with high-contrast accessibility toggles.
    - Full VoiceOver labels on all vital icons, pulse graphs, and state toggles.
+
+---
+
+## 7. Version 1 Scope
+
+WellnessCheck version 1 runs entirely on the user's devices. It needs no server run by Stricklin Development and no agreement with any outside organization. Apple Health does the heavy lifting.
+
+**In version 1**
+- iCloud backup and sync across the user's own devices (Apple-run, free).
+- Shareable doctor report: a PDF the user can email, print or AirDrop.
+- Low-supply medication reminders (the user calls the pharmacy).
+- Readings from blood pressure cuffs, scales, glucose meters and other devices, read from Apple Health rather than connected directly.
+- Medical records, including VA records, read from Apple Health's Health Records.
+- A doctor list the user types in themselves.
+
+**Later, if ever**
+- Sending readings or alerts directly to a doctor's office.
+- Automated pharmacy reorders.
+- Direct connections to the VA or other medical record systems.
+- Direct Bluetooth connections to devices.
+
+**Dropped**
+- "Verified" doctors.
