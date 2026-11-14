@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): WellnessCheck iOS Personal Health Tracking App
 
 **Product Name:** WellnessCheck  
-**Platform:** iOS (Native Swift / SwiftUI Aesthetic)  
+**Platform:** iPhone (Native Swift / SwiftUI). iPad and Apple Watch planned for later versions.  
 **Design System:** Obsidian Clinical (Dark Mode • Charcoal `#10131a` • Clinical Teal `#00d2b4` • SF Pro Typography)  
 **Organization:** Stricklin Development, LLC  
 **Regulatory Status:** Personal health record-keeping app. Not a medical device; does not diagnose, treat or monitor any condition.  
@@ -141,8 +141,11 @@ WellnessCheck version 1 runs entirely on the user's devices. It needs no server 
 - A doctor list the user types in themselves.
 - Weight tracking alongside the other vitals.
 - Units default to mg/dL, °F and lb, switchable to mmol/L, °C and kg.
+- iPhone only. iPads can run the iPhone app as-is.
 
 **Later, if ever**
+- Apple Watch app (version 2): check off meds and log quick readings from the wrist.
+- Native iPad layout.
 - Sending readings or alerts directly to a doctor's office.
 - Automated pharmacy reorders.
 - Direct connections to the VA or other medical record systems.
