@@ -33,7 +33,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 
 | Tab | Label | Primary Icon | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Tab 1** | **Snapshot** | `heart.text.square` | Daily vital summary, latest readings, vital cards. |
+| **Tab 1** | **Vitals** | `heart.text.square` | Daily vital summary, latest readings, vital cards. |
 | **Tab 2** | **Appointments** | `calendar` | Chronological doctor visits, check-ups, location routing, prep notes. |
 | **Tab 3** | **Meds** | `pills` | Medication schedule (Morning, Noon, Evening, Bedtime), inventory alerts, split-pill badges. |
 | **Tab 4** | **Doctors** | `stethoscope` | Care team directory, primary care physicians, specialists, instant contact. |
@@ -58,7 +58,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
   - Primary button: `Allow Access` with secondary `Customize Data Sharing`.
   - Privacy footnote confirming granular permission controls in Settings.
 
-### 4.3. Vitals Log & Snapshot
+### 4.3. Vitals
 - **Persistent Header:** User profile avatar, and "WellnessCheck" brand wordmark.
 - **Biometric Tiles:** High-contrast tiles for Heart Rate (BPM), Blood Pressure (mmHg), SpO2 (%), Blood Glucose (mg/dL), Body Temperature, Weight.
 - **Out-of-Range Flags:** Status pills (In Range, Out of Range) measured against target ranges the user or their doctor sets, in clinical teal and amber.
@@ -120,7 +120,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 ## 6. Technical Requirements & Non-Functionals
 
 1. **Security & Privacy:**
-   - Client-side biometric encryption (AES-256 for local SQLite / CoreData cache).
+   - Data stored on the iPhone is protected by the encryption iOS applies to every app's files, locked whenever the phone is locked; iCloud copies are encrypted by Apple.
    - Zero data transmission without explicit user authentication.
    - Granular HealthKit sharing opt-in and revocation.
 2. **Performance:**
@@ -144,6 +144,7 @@ WellnessCheck version 1 runs entirely on the user's devices. It needs no server 
 - A doctor list the user types in themselves.
 - Weight tracking alongside the other vitals.
 - Units default to mg/dL, °F and lb, switchable to mmol/L, °C and kg.
+- Family profiles: keep readings for yourself and for family members on one phone, and switch between them. Only your own readings go to and come from Apple Health - Apple Health belongs to the phone's owner, so a family member's readings stay inside WellnessCheck.
 - iPhone only. iPads can run the iPhone app as-is.
 
 **Later, if ever**
