@@ -60,7 +60,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 
 ### 4.3. Vitals Log & Snapshot
 - **Persistent Header:** User profile avatar, and "WellnessCheck" brand wordmark.
-- **Biometric Tiles:** High-contrast tiles for Heart Rate (BPM), Blood Pressure (mmHg), SpO2 (%), Blood Glucose (mg/dL), Body Temperature.
+- **Biometric Tiles:** High-contrast tiles for Heart Rate (BPM), Blood Pressure (mmHg), SpO2 (%), Blood Glucose (mg/dL), Body Temperature, Weight.
 - **Out-of-Range Flags:** Status pills (In Range, Out of Range) measured against target ranges the user or their doctor sets, in clinical teal and amber.
 - **Actions:** Quick filter pills and manual reading logging modal entry.
 
@@ -87,7 +87,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
   - Emergency Contact designation (name, relationship, phone).
 - **External Integrations:** Apple Health connection (readings from devices such as blood pressure cuffs, plus Health Records including VA), iCloud backup.
 - **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders, Appearance & Accessibility options.
-- **Units:** Blood glucose in mg/dL and temperature in °F by default; each can be switched in Settings (mmol/L, °C). Readings are stored in one standard unit and converted for display, so switching never alters past data.
+- **Units:** Blood glucose in mg/dL, temperature in °F and weight in lb by default; each can be switched in Settings (mmol/L, °C, kg). Readings are stored in one standard unit and converted for display, so switching never alters past data.
 
 ### 4.8. About & System Architecture
 - **Navigation:** Frosted-glass navigation bar with `< Settings` back trigger and `Done` action.
@@ -139,7 +139,8 @@ WellnessCheck version 1 runs entirely on the user's devices. It needs no server 
 - Readings from blood pressure cuffs, scales, glucose meters and other devices, read from Apple Health rather than connected directly.
 - Medical records, including VA records, read from Apple Health's Health Records.
 - A doctor list the user types in themselves.
-- Units default to mg/dL and °F, switchable to mmol/L and °C.
+- Weight tracking alongside the other vitals.
+- Units default to mg/dL, °F and lb, switchable to mmol/L, °C and kg.
 
 **Later, if ever**
 - Sending readings or alerts directly to a doctor's office.
