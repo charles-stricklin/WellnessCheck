@@ -127,6 +127,13 @@ private extension VitalEntry {
     var isOwn: Bool {
         if case .own = self { true } else { false }
     }
+
+    var testIdentifier: String {
+        switch self {
+        case .own(let r): r.healthSampleID == nil ? "reading.own" : "reading.own.inHealth"
+        case .health: "reading.fromHealth"
+        }
+    }
 }
 
 private struct VitalTile: View {
@@ -188,6 +195,8 @@ private struct EntryRow: View {
                 .monospacedDigit()
         }
         .accessibilityElement(children: .combine)
+        // Invisible to users; lets UI tests confirm a reading reached Apple Health.
+        .accessibilityIdentifier(entry.testIdentifier)
     }
 }
 
