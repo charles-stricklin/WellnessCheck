@@ -45,7 +45,7 @@ enum Units {
     }
 
     /// The reading as the user should see it, e.g. "120/80", "98.6", "6.1".
-    static func formatted(_ reading: Reading) -> String {
+    static func formatted(_ reading: any VitalValue) -> String {
         let kind = reading.kind
         if kind == .bloodPressure {
             let dia = reading.secondValue.map { String(Int($0.rounded())) } ?? "–"

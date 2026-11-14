@@ -86,6 +86,11 @@ struct LogReadingView: View {
             note: note.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         context.insert(reading)
+        // The reading is safe in the app either way; Health is a copy, so a refusal
+        // (permission off, no Health on this device) just leaves the ID empty.
+        Task {
+            reading.healthSampleID = await HealthStore.shared.save(reading)
+        }
         dismiss()
     }
 }

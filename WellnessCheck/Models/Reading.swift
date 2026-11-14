@@ -44,6 +44,8 @@ final class Reading {
     /// Diastolic for blood pressure; nil otherwise.
     var secondValue: Double?
     var note: String = ""
+    /// The copy saved to Apple Health, so deleting here can delete it there too.
+    var healthSampleID: UUID?
 
     var kind: VitalKind {
         get { VitalKind(rawValue: kindRaw) ?? .heartRate }
@@ -58,3 +60,13 @@ final class Reading {
         self.note = note
     }
 }
+
+/// What every displayable reading has, whether it lives in the app or came from Health.
+protocol VitalValue {
+    var kind: VitalKind { get }
+    var date: Date { get }
+    var value: Double { get }
+    var secondValue: Double? { get }
+}
+
+extension Reading: VitalValue {}
