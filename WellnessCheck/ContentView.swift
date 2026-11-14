@@ -5,7 +5,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             Tab("Vitals", systemImage: "heart.text.square") {
-                placeholder("Vitals")
+                VitalsView()
             }
             Tab("Appointments", systemImage: "calendar") {
                 placeholder("Appointments")
