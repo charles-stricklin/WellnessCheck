@@ -87,6 +87,7 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
   - Emergency Contact designation (name, relationship, phone).
 - **External Integrations:** Apple Health connection (readings from devices such as blood pressure cuffs, plus Health Records including VA), iCloud backup.
 - **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders, Appearance & Accessibility options.
+- **Units:** Blood glucose in mg/dL and temperature in °F by default; each can be switched in Settings (mmol/L, °C). Readings are stored in one standard unit and converted for display, so switching never alters past data.
 
 ### 4.8. About & System Architecture
 - **Navigation:** Frosted-glass navigation bar with `< Settings` back trigger and `Done` action.
@@ -138,6 +139,7 @@ WellnessCheck version 1 runs entirely on the user's devices. It needs no server 
 - Readings from blood pressure cuffs, scales, glucose meters and other devices, read from Apple Health rather than connected directly.
 - Medical records, including VA records, read from Apple Health's Health Records.
 - A doctor list the user types in themselves.
+- Units default to mg/dL and °F, switchable to mmol/L and °C.
 
 **Later, if ever**
 - Sending readings or alerts directly to a doctor's office.
