@@ -1,8 +1,8 @@
-# Product Requirements Document (PRD): WellnessCheck iOS Clinical Telemetry App
+# Product Requirements Document (PRD): WellnessCheck iOS Personal Health Tracking App
 
 **Product Name:** WellnessCheck  
 **Platform:** iOS (Native Swift / SwiftUI Aesthetic)  
-**Design System:** Obsidian Clinical (Dark Mode • Charcoal `#10131a` • Clinical Teal `#00d2b4` • Inter Typography)  
+**Design System:** Obsidian Clinical (Dark Mode • Charcoal `#10131a` • Clinical Teal `#00d2b4` • SF Pro Typography)  
 **Organization:** Stricklin Development, LLC  
 **Regulatory Status:** Personal health record-keeping app. Not a medical device; does not diagnose, treat or monitor any condition.  
 
@@ -19,25 +19,25 @@ By marrying high-contrast dark clinical aesthetics with standard iOS inset-group
 ## 2. Core Personas & User Needs
 
 1. **Chronic Condition Patient (e.g., Hypertension, Diabetes, Cardiac Care)**
-   - *Needs:* Rapid visual feedback on current biometrics (heart rate, BP, SpO2, blood glucose), automated trend alerts, clear medication split-dose reminders.
+   - *Needs:* Rapid visual feedback on current biometrics (heart rate, BP, SpO2, blood glucose), trend views and out-of-range flags, clear medication split-dose reminders.
 2. **Caregiver / Family Manager**
    - *Needs:* Profile switching between self and family dependents, emergency contact accessibility, exportable doctor reports.
 3. **Clinical / Provider Coordination**
-   - *Needs:* Direct physician directory, automated clinical summary exports, verifiable telemetry synchronization with electronic health records (Apple Health, VA Health, EHR systems).
+   - *Needs:* Direct physician directory, automated clinical summary exports, synchronization with electronic health records (Apple Health, VA Health, EHR systems).
 
 ---
 
 ## 3. Product Architecture & Navigation
 
-The core application follows an iOS standard 5-tab docked bottom navigation bar with frosted translucent glass blur (`backdrop-blur-md`) and safe-area affordances:
+The core application follows an iOS standard 5-tab docked tab bar using the system translucent material:
 
 | Tab | Label | Primary Icon | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Tab 1** | **Snapshot** | `ecg_heart` / `monitor_heart` | Daily vital summary, real-time biometrics, critical telemetry cards. |
-| **Tab 2** | **Appointments** | `calendar_today` | Chronological doctor visits, check-ups, location routing, prep notes. |
-| **Tab 3** | **Meds** | `medication` | Medication schedule (Morning, Noon, Evening, Bedtime), inventory alerts, split-pill badges. |
-| **Tab 4** | **Doctors** | `person_search` | Care team directory, primary care physicians, specialists, instant contact. |
-| **Tab 5** | **Settings** | `settings` | Medical profile, emergency contacts, VA/EHR integrations, biometric security, notifications. |
+| **Tab 1** | **Snapshot** | `heart.text.square` | Daily vital summary, latest readings, vital cards. |
+| **Tab 2** | **Appointments** | `calendar` | Chronological doctor visits, check-ups, location routing, prep notes. |
+| **Tab 3** | **Meds** | `pills` | Medication schedule (Morning, Noon, Evening, Bedtime), inventory alerts, split-pill badges. |
+| **Tab 4** | **Doctors** | `stethoscope` | Care team directory, primary care physicians, specialists, instant contact. |
+| **Tab 5** | **Settings** | `gearshape` | Medical profile, emergency contacts, VA/EHR integrations, biometric security, notifications. |
 
 ---
 
@@ -53,15 +53,15 @@ The core application follows an iOS standard 5-tab docked bottom navigation bar 
 - **Role:** Trust-building pre-permission screen before triggering iOS HealthKit / biometric system prompts.
 - **Components:**
   - Status header with dismiss (`close`) and `Skip` actions.
-  - Centered glowing squircle telemetry icon with pulse waveform and status node.
-  - Value cards detailing Real-Time Telemetry, Doctor & Clinic Coordination, and Early Anomaly Alerts.
+  - Centered glowing squircle health icon with pulse waveform and status node.
+  - Value cards detailing Organized Readings, Doctor & Clinic Coordination, and Out-of-Range Flags.
   - Primary button: `Allow Access` with secondary `Customize Data Sharing`.
   - Privacy footnote confirming granular permission controls in Settings.
 
 ### 4.3. Vitals Log & Snapshot
-- **Persistent Header:** Top iOS status bar (`9:41`, signal, Wi-Fi, battery), user profile avatar, and "WellnessCheck" brand wordmark.
+- **Persistent Header:** User profile avatar, and "WellnessCheck" brand wordmark.
 - **Biometric Tiles:** High-contrast tiles for Heart Rate (BPM), Blood Pressure (mmHg), SpO2 (%), Blood Glucose (mg/dL), Body Temperature.
-- **Anomaly Detection:** Visual status pills (Normal, Elevated, Review Needed) with clinical teal and amber alerts.
+- **Out-of-Range Flags:** Status pills (In Range, Out of Range) measured against target ranges the user or their doctor sets, in clinical teal and amber.
 - **Actions:** Quick filter pills and manual reading logging modal entry.
 
 ### 4.4. Medication Management
@@ -82,15 +82,15 @@ The core application follows an iOS standard 5-tab docked bottom navigation bar 
 - **Profile & Family Switcher:** Top avatar dropdown supporting multi-profile family health management.
 - **Medical Identification:**
   - Blood Type (e.g., `O Positive (O+)`).
-  - Date of Birth with age calculation (e.g., `May 5, 1960 (66 yrs)`).
-  - Allergies list (e.g., `Cedar`) rendered in clean body styling.
-  - Emergency Contact designation (e.g., `Jenny Fultz`).
+  - Date of Birth with age calculation (e.g., `March 3, 1955 (71 yrs)`).
+  - Allergies list (e.g., `Penicillin`, `Pollen`) rendered in clean body styling.
+  - Emergency Contact designation (name, relationship, phone).
 - **External Integrations:** VA Account Connection (OAuth2 / FHIR credentials), Apple Health sync.
 - **Security & Preferences:** Face ID / Biometrics toggle, Passcode / PIN fallback, Measurement Reminders, Appearance & Accessibility options.
 
 ### 4.8. About & System Architecture
 - **Navigation:** Frosted-glass navigation bar with `< Settings` back trigger and `Done` action.
-- **Telemetry Info:** Build versioning (`2.4.1 (Build 890)`), Telemetry Core (`v3.2`), and encrypted relay node ID.
+- **App Info:** Version and build number, read from the app bundle.
 - **Compliance & Legal:** Links for Terms of Service, Privacy Policy, and Open Source Licenses.
 - **Medical Disclaimer:** Plain statement that WellnessCheck is not a medical device, does not provide medical advice, and that readings should be discussed with a physician.
 
@@ -108,8 +108,8 @@ The core application follows an iOS standard 5-tab docked bottom navigation bar 
   - `Text On Surface`: `#e1e3ec` (Crisp Off-White)
   - `Text On Surface Variant`: `#8992a2` (Muted Secondary)
   - `Outline / Dividers`: `rgba(255, 255, 255, 0.08)` to `0.15`
-- **Typography:** Inter (Standard Apple SF Pro alternative) with strict tabular figures for biometric numerals.
-- **Geometry & Elevation:** iOS Inset-Grouped cards, `rounded-2xl` surfaces, flat elevation with subtle glow highlights.
+- **Typography:** SF Pro (the iOS system font, with Dynamic Type) using monospaced digits for biometric numerals.
+- **Geometry & Elevation:** iOS Inset-Grouped cards, 16-pt continuous corner radius, flat elevation with subtle glow highlights.
 
 ---
 
@@ -117,11 +117,11 @@ The core application follows an iOS standard 5-tab docked bottom navigation bar 
 
 1. **Security & Privacy:**
    - Client-side biometric encryption (AES-256 for local SQLite / CoreData cache).
-   - Zero telemetry transmission without explicit user authentication.
+   - Zero data transmission without explicit user authentication.
    - Granular HealthKit sharing opt-in and revocation.
 2. **Performance:**
    - 60 FPS scrolling across long vitals history and appointment timelines.
    - Low-latency Bluetooth LE connection with peripheral biometric sensors.
 3. **Accessibility:**
    - Dynamic Type support with high-contrast accessibility toggles.
-   - Full VoiceOver labels on all telemetry icons, pulse graphs, and state toggles.
+   - Full VoiceOver labels on all vital icons, pulse graphs, and state toggles.
