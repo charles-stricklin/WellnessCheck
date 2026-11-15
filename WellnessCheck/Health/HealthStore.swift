@@ -51,6 +51,13 @@ final class HealthStore {
         Set(quantityKinds.map(\.1)).union([systolic, diastolic])
     }
 
+    private static let height = HKQuantityType(.height)
+
+    /// Read-only: used to fill in the owner's details during setup.
+    private static var profileTypes: Set<HKObjectType> {
+        [HKCharacteristicType(.dateOfBirth), HKCharacteristicType(.biologicalSex), height]
+    }
+
     /// HealthKit stores oxygen as a fraction (0.98); the app stores a percentage (98).
     private static func toApp(_ value: Double, _ kind: VitalKind) -> Double {
         kind == .oxygen ? value * 100 : value
@@ -67,7 +74,36 @@ final class HealthStore {
     func requestAccess() async {
         guard isAvailable else { return }
         // Reading blood pressure requires asking for the correlation's component types.
-        try? await store.requestAuthorization(toShare: Self.allTypes, read: Set(Self.allTypes))
+        try? await store.requestAuthorization(toShare: Self.allTypes, read: Set<HKObjectType>(Self.allTypes).union(Self.profileTypes))
+    }
+
+    // MARK: Owner's details
+
+    struct Profile: Sendable {
+        var birthDate: Date?
+        var sex: Sex?
+        var heightCm: Double?
+    }
+
+    /// Whatever the owner has entered in the Health app. Each field is nil when it
+    /// isn't set or reading was refused — Health doesn't say which, by design.
+    func profile() async -> Profile {
+        guard isAvailable else { return Profile() }
+        var result = Profile()
+        if let parts = try? store.dateOfBirthComponents() {
+            result.birthDate = Calendar.current.date(from: parts)
+        }
+        switch (try? store.biologicalSex())?.biologicalSex {
+        case .female: result.sex = .female
+        case .male: result.sex = .male
+        case .other: result.sex = .other
+        default: break
+        }
+        let query = HKSampleQueryDescriptor(predicates: [.quantitySample(type: Self.height)], sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)], limit: 1)
+        if let latest = try? await query.result(for: store).first {
+            result.heightCm = latest.quantity.doubleValue(for: .meterUnit(with: .centi))
+        }
+        return result
     }
 
     // MARK: Writing

@@ -46,6 +46,8 @@ final class Reading {
     var note: String = ""
     /// The copy saved to Apple Health, so deleting here can delete it there too.
     var healthSampleID: UUID?
+    /// Whose reading this is. Optional only because CloudKit requires it; always set.
+    var person: Person?
 
     var kind: VitalKind {
         get { VitalKind(rawValue: kindRaw) ?? .heartRate }

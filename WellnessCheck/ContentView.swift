@@ -2,7 +2,13 @@ import SwiftUI
 
 /// The five tabs from the PRD. Each is a placeholder until its screen is built.
 struct ContentView: View {
+    @AppStorage(Onboarding.doneKey) private var onboardingDone = false
+
     var body: some View {
+        if onboardingDone { tabs } else { OnboardingView() }
+    }
+
+    private var tabs: some View {
         TabView {
             Tab("Vitals", systemImage: "heart.text.square") {
                 VitalsView()

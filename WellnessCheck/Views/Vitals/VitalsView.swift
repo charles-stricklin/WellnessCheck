@@ -37,7 +37,12 @@ struct VitalsView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Reading.date, order: .reverse) private var readings: [Reading]
+    @Query(sort: \Person.createdAt) private var people: [Person]
+    // Remembered per device so the app reopens on whoever was last being looked at.
+    @AppStorage("activePersonID") private var activePersonID = ""
+    @State private var isAddingPerson = false
     @State private var health = HealthStore.shared
+    @AppStorage(Onboarding.healthSkippedKey) private var healthSkipped = false
     @State private var isLogging = false
 
     var body: some View {
@@ -73,16 +78,24 @@ struct VitalsView: View {
                     .padding(.top, 200)
                 }
             }
-            .navigationTitle("Vitals")
+            .navigationTitle(activePerson.map { $0.isSelf ? "Vitals" : $0.name } ?? "Vitals")
             .toolbar {
-                Button("Log Reading", systemImage: "plus") { isLogging = true }
+                ToolbarItem(placement: .topBarLeading) { personMenu }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Log Reading", systemImage: "plus") { isLogging = true }
+                        .disabled(activePerson == nil)
+                }
             }
             .sheet(isPresented: $isLogging) {
-                LogReadingView()
+                if let activePerson { LogReadingView(person: activePerson) }
+            }
+            .sheet(isPresented: $isAddingPerson) {
+                AddPersonView { activePersonID = $0.id.uuidString }
             }
             .refreshable { await health.refresh() }
             .task {
-                await health.requestAccess()
+                // Respect a Skip during setup; connecting later will live in Settings.
+                if !healthSkipped { await health.requestAccess() }
                 await health.refresh()
             }
             // Pick up readings a cuff or scale added while the app was in the background.
@@ -92,8 +105,31 @@ struct VitalsView: View {
         }
     }
 
+    /// Whoever is selected, falling back to the owner.
+    private var activePerson: Person? {
+        people.first { $0.id.uuidString == activePersonID } ?? people.first { $0.isSelf }
+    }
+
+    private var personMenu: some View {
+        Menu {
+            Picker("Person", selection: Binding(get: { activePerson?.id.uuidString ?? "" }, set: { activePersonID = $0 })) {
+                ForEach(people) { person in
+                    Text(person.isSelf ? "\(person.name) (You)" : person.name).tag(person.id.uuidString)
+                }
+            }
+            Divider()
+            Button("Add Family Member", systemImage: "person.badge.plus") { isAddingPerson = true }
+        } label: {
+            Label(activePerson?.name ?? "People", systemImage: "person.crop.circle")
+        }
+    }
+
+    /// The selected person's readings. Health readings belong to the phone's owner,
+    /// so they appear only on the owner's profile.
     private var entries: [VitalEntry] {
-        (readings.map(VitalEntry.own) + health.external.map(VitalEntry.health))
+        let own = readings.filter { $0.person?.id == activePerson?.id }.map(VitalEntry.own)
+        let fromHealth = activePerson?.isSelf == true ? health.external.map(VitalEntry.health) : []
+        return (own + fromHealth)
             .sorted { $0.date > $1.date }
     }
 
@@ -202,5 +238,5 @@ private struct EntryRow: View {
 
 #Preview {
     VitalsView()
-        .modelContainer(for: Reading.self, inMemory: true)
+        .modelContainer(for: [Person.self, Reading.self], inMemory: true)
 }

@@ -6,6 +6,8 @@ struct LogReadingView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    let person: Person
+
     @State private var kind: VitalKind = .bloodPressure
     @State private var first = ""
     @State private var second = ""
@@ -29,7 +31,11 @@ struct LogReadingView: View {
                         numberField(kind.title, text: $first)
                     }
                 } footer: {
-                    Text("In \(Units.unitLabel(for: kind)).")
+                    if person.isSelf {
+                        Text("In \(Units.unitLabel(for: kind)).")
+                    } else {
+                        Text("In \(Units.unitLabel(for: kind)). Kept in WellnessCheck only. Family members' readings aren't added to your Apple Health.")
+                    }
                 }
 
                 Section {
@@ -86,6 +92,12 @@ struct LogReadingView: View {
             note: note.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         context.insert(reading)
+        reading.person = person
+        // Apple Health holds the phone owner's data only.
+        guard person.isSelf else {
+            dismiss()
+            return
+        }
         // The reading is safe in the app either way; Health is a copy, so a refusal
         // (permission off, no Health on this device) just leaves the ID empty.
         Task {
@@ -96,6 +108,6 @@ struct LogReadingView: View {
 }
 
 #Preview {
-    LogReadingView()
-        .modelContainer(for: Reading.self, inMemory: true)
+    LogReadingView(person: Person(name: "Me", isSelf: true))
+        .modelContainer(for: [Person.self, Reading.self], inMemory: true)
 }
