@@ -120,7 +120,7 @@ struct SettingsView: View {
 
     /// Reschedules for the new choices, which also asks permission the first time.
     private func checkNotifications() async {
-        await Reminders.reschedule(in: context)
+        await Reminders.reschedule(in: context, askPermission: true)
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         notificationsDenied = status == .denied
     }

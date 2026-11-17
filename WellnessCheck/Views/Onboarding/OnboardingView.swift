@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 /// First-launch setup: a brief splash (logo, name, version), welcome, Apple Health permission, the owner's name, units and preferences,
 /// the owner's date of birth, sex and height, and optional family members. Everything chosen here can be changed later, so
@@ -30,7 +31,7 @@ struct OnboardingView: View {
 
     private enum Step: Int, CaseIterable {
         // About comes after Units so height shows in the units they just picked.
-        case splash, welcome, health, name, units, vitals, about, family
+        case splash, welcome, health, name, units, vitals, about, family, reminders
     }
 
     var body: some View {
@@ -45,6 +46,7 @@ struct OnboardingView: View {
                 case .vitals: vitalsStep
                 case .about: aboutStep
                 case .family: familyStep
+                case .reminders: remindersStep
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -259,7 +261,24 @@ struct OnboardingView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .frame(maxWidth: .infinity)
-            primaryButton(family.isEmpty ? "Not Now" : "Done") { finish() }
+            primaryButton(family.isEmpty ? "Not Now" : "Continue") { advance(from: .family) }
+        }
+    }
+
+    private var remindersStep: some View {
+        StepLayout(
+            symbol: "bell.badge.fill",
+            title: "Want reminders?",
+            message: "WellnessCheck can remind you when it's time for your medicines, your readings and your appointments.",
+            footer: "Next, your iPhone will ask to allow notifications. You can change reminders any time in Settings."
+        ) {
+            primaryButton("Turn On Reminders") {
+                Task {
+                    _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+                    finish()
+                }
+            }
+            skipButton { finish() }
         }
     }
 

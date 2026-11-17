@@ -48,6 +48,10 @@ struct VitalsView: View {
     @AppStorage(Preferences.openToLogReadingKey) private var openToLogReading = true
     /// Once per launch: switching tabs and coming back shouldn't pop the form again.
     @MainActor private static var didOpenLogOnLaunch = false
+    /// When the app went to the background, so coming back after a long while
+    /// counts like a fresh start (the morning reading after a night in the background).
+    @MainActor private static var backgroundedAt: Date?
+    private static let awayCountsAsNewVisit: TimeInterval = 3600
     @State private var router = AppRouter.shared
 
     var body: some View {
@@ -124,7 +128,19 @@ struct VitalsView: View {
             }
             // Pick up readings a cuff or scale added while the app was in the background.
             .onChange(of: scenePhase) {
-                if scenePhase == .active { Task { await health.refresh() } }
+                switch scenePhase {
+                case .background:
+                    Self.backgroundedAt = .now
+                case .active:
+                    if openToLogReading, let away = Self.backgroundedAt,
+                       Date.now.timeIntervalSince(away) >= Self.awayCountsAsNewVisit {
+                        router.selectedTab = .vitals
+                        isLogging = true
+                    }
+                    Self.backgroundedAt = nil
+                    Task { await health.refresh() }
+                default: break
+                }
             }
         }
     }

@@ -52,17 +52,17 @@ enum Reminders {
         times.map { String(format: "%02d:%02d", $0.hour ?? 0, $0.minute ?? 0) }.joined(separator: ",")
     }
 
-    static func reschedule(in context: ModelContext) async {
+    /// `askPermission` is only for moments the person chose reminders (setup, Settings),
+    /// so iOS's question never pops up out of nowhere.
+    static func reschedule(in context: ModelContext, askPermission: Bool = false) async {
         let requests = buildRequests(in: context)
         let center = UNUserNotificationCenter.current()
         let pending = await center.pendingNotificationRequests().map(\.identifier).filter { $0.hasPrefix(idPrefix) }
         center.removePendingNotificationRequests(withIdentifiers: pending)
         guard !requests.isEmpty else { return }
 
-        // Ask the first time there's actually something to remind about, so the
-        // question makes sense when it appears.
         var status = await center.notificationSettings().authorizationStatus
-        if status == .notDetermined {
+        if status == .notDetermined && askPermission {
             _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
             status = await center.notificationSettings().authorizationStatus
         }
