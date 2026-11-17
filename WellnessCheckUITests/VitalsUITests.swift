@@ -16,6 +16,7 @@ final class VitalsUITests: XCTestCase {
         app.launch()
 
         allowHealthAccessIfAsked(app)
+        dismissNotificationQuestionIfAsked()
 
         app.buttons["Log Reading"].tap()
 
@@ -66,6 +67,15 @@ final class VitalsUITests: XCTestCase {
             usleep(300_000)
         }
         field.typeText(text)
+    }
+
+    /// iOS's notification question belongs to SpringBoard, not the app, so it's
+    /// looked for there. Declined so the test doesn't depend on reminders.
+    @MainActor
+    private func dismissNotificationQuestionIfAsked() {
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let dontAllow = springboard.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Don'")).firstMatch
+        if dontAllow.waitForExistence(timeout: 4) { dontAllow.tap() }
     }
 
     /// The Health permission sheet only shows the first time; skip it when absent.
