@@ -44,7 +44,9 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 ## 4. Screen-by-Screen Specifications
 
 ### 4.1. Welcome & Onboarding
-- **Emblem & Branding:** Glowing ECG pulse badge with `#00d2b4` ambient glow.
+- **Emblem & Branding:** The heart mascot on a warm off-white page. First launch opens with a brief splash (mascot, name, version), then Welcome.
+- **Setup Steps:** Apple Health, name, units and where the app opens, which vitals to track, date of birth / sex / height, family members, and reminders. Every step has Back.
+- **Later Launches:** Open straight to the reading form (switchable in Settings), and again after an hour or more in the background.
 - **Value Proposition:** Accurate, organized tracking, iCloud backup, and reports to share with your doctor.
 - **Primary CTA:** "Get Started" navigating seamlessly into health setup.
 - **Security Footer:** End-to-end encryption and a plain-language privacy commitment.
@@ -62,10 +64,16 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 - **Persistent Header:** User profile avatar, and "WellnessCheck" brand wordmark.
 - **Biometric Tiles:** High-contrast tiles for Heart Rate (BPM), Blood Pressure (mmHg), SpO2 (%), Blood Glucose (mg/dL), Body Temperature, Weight.
 - **Out-of-Range Flags:** Status pills (In Range, Out of Range) measured against target ranges the user or their doctor sets, in clinical teal and amber.
-- **Actions:** Quick filter pills and manual reading logging modal entry.
+- **Reading Form:** One row per vital the user checked in setup or Settings, filled in together and saved with one tap; empty boxes save nothing; any other vital can be added for one time. Medicines due now appear as one collapsible checklist line on the same form.
+- **Lab Results:** From Health Records, latest per test with flags and normal range.
+- **Report:** PDF for the doctor (2 weeks, 30 or 90 days), shared through the iOS share sheet.
 
 ### 4.4. Medication Management
-- **Schedule Groups:** Time-based bucketing (Morning, Afternoon, Evening, Bedtime).
+- **Schedules:** Each medicine has its own times, each with its own amount (halves allowed), and a frequency: every day, every other day, certain days, or as needed. Not fixed Morning/Bedtime buckets.
+- **Taken Checklist:** On the reading form, medicines due now (about 4 hours before to 3 hours after their time) in one compact drop-down; check what you took, unchecked isn't recorded. As-needed medicines are logged from the Meds tab.
+- **Status:** Taking, Paused or Stopped, with a reason; schedule and status changes are kept as a dated history.
+- **Add from Health Records:** Medicines from any connected provider, chosen from a checklist.
+- **Out of Scope:** Supplies (sensors, needles, strips, CPAP parts) are not tracked.
 - **Clinical Badges:** Dosage strength indicators, visual pill-split icons, glowing schedule status tags.
 - **Inventory Tracking:** Low-supply reminders telling the user it is time to call the pharmacy.
 - **Medication Detail:** Optional photo of the pill (so it can be recognized at a glance), shape, color and imprint; generic name; what it is for; prescribing doctor (linked to the Doctors tab); refills remaining; dosage strength with a note when the tablet is scored for splitting; special instructions (e.g., take with food, avoid grapefruit).
@@ -100,18 +108,13 @@ The core application follows an iOS standard 5-tab docked tab bar using the syst
 
 ---
 
-## 5. Design System Tokens: Obsidian Clinical
+## 5. Design System Tokens
 
-- **Theme Mode:** Light, Dark, or Auto (follows the iPhone's setting), chosen in Settings. The palette below is the dark theme; the light theme keeps Clinical Teal as the accent on iOS system light backgrounds (exact values to be defined).
+- **Theme Mode:** Light, Dark, or Auto (follows the iPhone's setting), chosen in Settings. Screens use iOS's system backgrounds and text colors in both modes.
 - **Palette:**
-  - `Background / Surface Dim`: `#10131a`
-  - `Surface Container Low`: `#191c22`
-  - `Surface Container`: `#20242c`
-  - `Surface Container High / Bright`: `#2a2f3a` / `#363941`
-  - `Primary / Accent`: `#00d2b4` (Clinical Teal)
-  - `Text On Surface`: `#e1e3ec` (Crisp Off-White)
-  - `Text On Surface Variant`: `#8992a2` (Muted Secondary)
-  - `Outline / Dividers`: `rgba(255, 255, 255, 0.08)` to `0.15`
+  - `Primary / Accent`: `#DB392A` (Heart Red), matching the mascot and app icon.
+  - `Paper`: warm off-white behind mascot screens (setup), which stay light even in Dark Mode.
+  - `In Range`: teal; `Out of Range`, low supply and dose changes: amber.
 - **Typography:** SF Pro (the iOS system font, with Dynamic Type) using monospaced digits for biometric numerals.
 - **Geometry & Elevation:** iOS Inset-Grouped cards, 16-pt continuous corner radius, flat elevation with subtle glow highlights.
 
