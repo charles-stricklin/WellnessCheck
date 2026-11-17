@@ -31,6 +31,7 @@ struct ContentView: View {
             // Lock on the way out, so the app switcher's snapshot is covered too.
             case .background: isUnlocked = false
             case .active:
+                People.ensureSelf(in: context)
                 Task {
                     if lockEnabled && !isUnlocked { await unlock() }
                     await Reminders.reschedule(in: context)

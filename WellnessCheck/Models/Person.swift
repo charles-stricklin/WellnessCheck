@@ -76,7 +76,7 @@ enum People {
     @discardableResult
     static func ensureSelf(in context: ModelContext) -> Person {
         let owners = (try? context.fetch(FetchDescriptor<Person>(predicate: #Predicate { $0.isSelf }))) ?? []
-        let me = owners.first ?? {
+        let me = mergeOwners(owners) ?? {
             let person = Person(name: defaultOwnerName, isSelf: true)
             context.insert(person)
             return person
@@ -85,5 +85,32 @@ enum People {
         orphans.forEach { $0.person = me }
         try? context.save()
         return me
+    }
+
+    /// With iCloud, a reinstall or a second device makes a fresh owner before the
+    /// original arrives from iCloud. Keep the oldest, move everything onto it, fill
+    /// in anything it's missing from the newer one, and delete the extras.
+    @MainActor
+    private static func mergeOwners(_ owners: [Person]) -> Person? {
+        let sorted = owners.sorted { $0.createdAt < $1.createdAt }
+        guard let keep = sorted.first else { return nil }
+        for extra in sorted.dropFirst() {
+            extra.readings?.forEach { $0.person = keep }
+            extra.medications?.forEach { $0.person = keep }
+            extra.appointments?.forEach { $0.person = keep }
+            if keep.name == defaultOwnerName { keep.name = extra.name }
+            if keep.birthDate == nil { keep.birthDate = extra.birthDate }
+            if keep.sexRaw == nil { keep.sexRaw = extra.sexRaw }
+            if keep.heightCm == nil { keep.heightCm = extra.heightCm }
+            if keep.bloodType.isEmpty { keep.bloodType = extra.bloodType }
+            keep.allergies += extra.allergies.filter { !keep.allergies.contains($0) }
+            if keep.emergencyName.isEmpty {
+                keep.emergencyName = extra.emergencyName
+                keep.emergencyRelationship = extra.emergencyRelationship
+                keep.emergencyPhone = extra.emergencyPhone
+            }
+            extra.modelContext?.delete(extra)
+        }
+        return keep
     }
 }
