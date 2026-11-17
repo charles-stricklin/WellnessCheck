@@ -84,6 +84,8 @@ enum SampleData {
 
         // Made-up medicines so the Meds tab and the form's checklist have something to show.
         let me = People.ensureSelf(in: context)
+        // A blood pressure target so the In Range / Out of Range flags show.
+        me.targets = [VitalTarget(kindRaw: VitalKind.bloodPressure.rawValue, high: 120, secondHigh: 80)]
         let samples: [(String, String, String, [(Int, Double)], Double)] = [
             ("Lisinopril", "10 mg", "Blood pressure", [(8, 1)], 30),
             ("Metoprolol", "50 mg", "Blood pressure", [(8, 0.5), (20, 0.5)], 6),

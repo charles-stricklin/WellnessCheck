@@ -60,7 +60,7 @@ struct VitalsView: View {
                 Section("Latest") {
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                         ForEach(VitalKind.allCases) { kind in
-                            VitalTile(kind: kind, latest: entries.first { $0.kind == kind })
+                            VitalTile(kind: kind, latest: entries.first { $0.kind == kind }, person: activePerson)
                         }
                     }
                     .listRowInsets(EdgeInsets())
@@ -80,7 +80,7 @@ struct VitalsView: View {
                 ForEach(days, id: \.self) { day in
                     Section(day.formatted(.dateTime.weekday(.wide).month().day())) {
                         ForEach(entries(on: day)) { entry in
-                            EntryRow(entry: entry)
+                            EntryRow(entry: entry, inRange: activePerson?.isInRange(entry.value))
                                 .deleteDisabled(!entry.isOwn)
                         }
                         .onDelete { offsets in delete(offsets, on: day) }
@@ -225,6 +225,7 @@ private extension VitalEntry {
 private struct VitalTile: View {
     let kind: VitalKind
     let latest: VitalEntry?
+    let person: Person?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -244,6 +245,9 @@ private struct VitalTile: View {
             Text(latest?.date.formatted(.relative(presentation: .named)) ?? "No readings")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
+            if let latest, let inRange = person?.isInRange(latest.value) {
+                RangePill(inRange: inRange)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -254,6 +258,7 @@ private struct VitalTile: View {
 
 private struct EntryRow: View {
     let entry: VitalEntry
+    let inRange: Bool?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -273,6 +278,8 @@ private struct EntryRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                // Only the exception is called out in the list; "In Range" on every row is noise.
+                if inRange == false { RangePill(inRange: false) }
             }
             Spacer()
             Text(entry.date.formatted(date: .omitted, time: .shortened))
@@ -283,6 +290,21 @@ private struct EntryRow: View {
         .accessibilityElement(children: .combine)
         // Invisible to users; lets UI tests confirm a reading reached Apple Health.
         .accessibilityIdentifier(entry.testIdentifier)
+    }
+}
+
+/// "In Range" in teal or "Out of Range" in amber, per the PRD; shown only where a target is set.
+struct RangePill: View {
+    let inRange: Bool
+
+    var body: some View {
+        Label(inRange ? "In Range" : "Out of Range",
+              systemImage: inRange ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .foregroundStyle(inRange ? Color.teal : Color.orange)
+            .background((inRange ? Color.teal : Color.orange).opacity(0.15), in: .capsule)
     }
 }
 

@@ -29,6 +29,9 @@ final class Person {
     var emergencyRelationship: String = ""
     var emergencyPhone: String = ""
 
+    /// Target ranges set by the person or their doctor; readings outside them are flagged.
+    var targets: [VitalTarget] = []
+
     var sex: Sex? {
         get { sexRaw.flatMap(Sex.init(rawValue:)) }
         set { sexRaw = newValue?.rawValue }
@@ -112,5 +115,37 @@ enum People {
             extra.modelContext?.delete(extra)
         }
         return keep
+    }
+}
+
+/// A target range for one vital, in the app's stored units (mmHg, bpm, %, mg/dL, °C, kg).
+/// Any limit can be left empty. For blood pressure, `low`/`high` are the top number
+/// and `secondLow`/`secondHigh` the bottom.
+struct VitalTarget: Codable, Hashable {
+    var kindRaw: String
+    var low: Double?
+    var high: Double?
+    var secondLow: Double?
+    var secondHigh: Double?
+
+    var isEmpty: Bool { low == nil && high == nil && secondLow == nil && secondHigh == nil }
+
+    func contains(_ reading: any VitalValue) -> Bool {
+        func within(_ value: Double?, _ low: Double?, _ high: Double?) -> Bool {
+            guard let value else { return true }
+            return value >= (low ?? -.infinity) && value <= (high ?? .infinity)
+        }
+        return within(reading.value, low, high) && within(reading.secondValue, secondLow, secondHigh)
+    }
+}
+
+extension Person {
+    func target(for kind: VitalKind) -> VitalTarget? {
+        targets.first { $0.kindRaw == kind.rawValue && !$0.isEmpty }
+    }
+
+    /// nil when there's no target for that vital, so nothing is shown rather than a guess.
+    func isInRange(_ reading: any VitalValue) -> Bool? {
+        target(for: reading.kind)?.contains(reading)
     }
 }

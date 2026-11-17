@@ -51,8 +51,13 @@ struct SettingsView: View {
                         } label: {
                             Label(person.isSelf ? "Medical ID" : "Medical ID for \(person.name)", systemImage: "staroflife.fill")
                         }
+                        NavigationLink {
+                            TargetsView(person: person)
+                        } label: {
+                            Label("Target Ranges", systemImage: "target")
+                        }
                     } footer: {
-                        Text("Blood type, allergies, emergency contact, and the details on your reports.")
+                        Text("Medical ID holds blood type, allergies and an emergency contact. Target ranges are the readings your doctor wants to see.")
                     }
                 }
 

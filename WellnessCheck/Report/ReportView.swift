@@ -158,13 +158,14 @@ struct HealthReport {
             // For blood pressure, low and high go by the top number.
             let low = list.min { $0.value < $1.value }!
             let high = list.max { $0.value < $1.value }!
+            let outside = person.target(for: kind) == nil ? "—" : "\(list.filter { person.isInRange($0) == false }.count)"
             return "<tr><td>\(esc(kind.title)) <span class=\"muted\">(\(esc(Units.unitLabel(for: kind))))</span></td>"
                 + "<td class=\"num\">\(list.count)</td><td class=\"num\">\(esc(Units.formatted(average)))</td>"
-                + "<td class=\"num\">\(esc(Units.formatted(low)))</td><td class=\"num\">\(esc(Units.formatted(high)))</td></tr>"
+                + "<td class=\"num\">\(esc(Units.formatted(low)))</td><td class=\"num\">\(esc(Units.formatted(high)))</td><td class=\"num\">\(outside)</td></tr>"
         }
         guard !rows.isEmpty else { return "<h2>Vital Signs</h2><p class=\"muted\">No readings in this period.</p>" }
         return "<h2>Vital Signs</h2><table><tr><th>Vital</th><th class=\"num\">Readings</th><th class=\"num\">Average</th>"
-            + "<th class=\"num\">Lowest</th><th class=\"num\">Highest</th></tr>" + rows.joined() + "</table>"
+            + "<th class=\"num\">Lowest</th><th class=\"num\">Highest</th><th class=\"num\">Out of range</th></tr>" + rows.joined() + "</table>"
     }
 
     private var medicinesSection: String {
@@ -215,7 +216,8 @@ struct HealthReport {
         guard !readings.isEmpty else { return "" }
         let rows = readings.map { reading in
             let source = (reading as? HealthReading)?.sourceName ?? ""
-            let note = (reading as? Reading)?.note ?? source
+            var note = (reading as? Reading)?.note ?? source
+            if person.isInRange(reading) == false { note = "Out of range" + (note.isEmpty ? "" : " · \(note)") }
             return "<tr><td width=\"26%\">\(esc(reading.date.formatted(date: .abbreviated, time: .shortened)))</td>"
                 + "<td>\(esc(reading.kind.title))</td><td class=\"num\">\(esc(Units.formatted(reading))) \(esc(Units.unitLabel(for: reading.kind)))</td>"
                 + "<td class=\"muted\">\(esc(note))</td></tr>"
