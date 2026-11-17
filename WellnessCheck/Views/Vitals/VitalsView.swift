@@ -44,6 +44,9 @@ struct VitalsView: View {
     @State private var health = HealthStore.shared
     @AppStorage(Onboarding.healthSkippedKey) private var healthSkipped = false
     @State private var isLogging = false
+    @AppStorage(Preferences.openToLogReadingKey) private var openToLogReading = true
+    /// Once per launch: switching tabs and coming back shouldn't pop the form again.
+    @MainActor private static var didOpenLogOnLaunch = false
 
     var body: some View {
         NavigationStack {
@@ -96,6 +99,11 @@ struct VitalsView: View {
             .task {
                 // Respect a Skip during setup; connecting later will live in Settings.
                 if !healthSkipped { await health.requestAccess() }
+                // After Apple's permission sheet, so the two never collide on screen.
+                if openToLogReading && !Self.didOpenLogOnLaunch {
+                    Self.didOpenLogOnLaunch = true
+                    isLogging = true
+                }
                 await health.refresh()
             }
             // Pick up readings a cuff or scale added while the app was in the background.

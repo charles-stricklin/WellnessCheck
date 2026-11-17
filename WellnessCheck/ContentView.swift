@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The five tabs from the PRD. Each is a placeholder until its screen is built.
+/// The five tabs from the PRD. Placeholders stand in until each screen is built.
 struct ContentView: View {
     @AppStorage(Onboarding.doneKey) private var onboardingDone = false
 
@@ -23,7 +23,7 @@ struct ContentView: View {
                 placeholder("Doctors")
             }
             Tab("Settings", systemImage: "gearshape") {
-                placeholder("Settings")
+                SettingsView()
             }
         }
     }

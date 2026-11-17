@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// First-launch setup: welcome, Apple Health permission, the owner's name, units,
+/// First-launch setup: a brief splash (logo, name, version), welcome, Apple Health permission, the owner's name, units and preferences,
 /// the owner's date of birth, sex and height, and optional family members. Everything chosen here can be changed later, so
 /// every step after Welcome can be skipped without consequence.
 struct OnboardingView: View {
@@ -13,8 +13,12 @@ struct OnboardingView: View {
     @AppStorage(Units.glucoseMmolKey) private var glucoseMmol = false
     @AppStorage(Units.celsiusKey) private var celsius = false
     @AppStorage(Units.kilogramsKey) private var kilograms = false
+    @AppStorage(Preferences.openToLogReadingKey) private var openToLogReading = true
+    @AppStorage(Preferences.formVitalsKey) private var formVitals = Preferences.defaultFormVitals
 
-    @State private var step: Step = .welcome
+    @State private var step: Step = .splash
+    /// Flips the slide direction so Back feels like going back.
+    @State private var isGoingBack = false
     @State private var name = ""
     @State private var isAddingPerson = false
     @State private var birthDate: Date?
@@ -26,29 +30,72 @@ struct OnboardingView: View {
 
     private enum Step: Int, CaseIterable {
         // About comes after Units so height shows in the units they just picked.
-        case welcome, health, name, units, about, family
+        case splash, welcome, health, name, units, vitals, about, family
     }
 
     var body: some View {
         VStack(spacing: 0) {
             Group {
                 switch step {
+                case .splash: splash
                 case .welcome: welcome
                 case .health: healthPrimer
                 case .name: nameStep
                 case .units: unitsStep
+                case .vitals: vitalsStep
                 case .about: aboutStep
                 case .family: familyStep
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)).combined(with: .opacity))
+            .transition(.asymmetric(insertion: .move(edge: isGoingBack ? .leading : .trailing),
+                                    removal: .move(edge: isGoingBack ? .trailing : .leading)).combined(with: .opacity))
+        }
+        .overlay(alignment: .topLeading) {
+            // Nothing to go back to from the splash or Welcome.
+            if step.rawValue > Step.welcome.rawValue {
+                Button("Back", systemImage: "chevron.left", action: goBack)
+                    .font(.body.weight(.semibold))
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+            }
         }
         .animation(.easeInOut, value: step)
         .sheet(isPresented: $isAddingPerson) { AddPersonView() }
     }
 
     // MARK: Steps
+
+    private static let splashSeconds = 2.0
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    }
+
+    /// Logo, name and version, then on to Welcome by itself; a tap moves on sooner.
+    private var splash: some View {
+        VStack(spacing: 16) {
+            Image("Mascot")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 220)
+                .accessibilityHidden(true)
+            Text("WellnessCheck")
+                .font(.largeTitle.bold())
+            Text("Version \(appVersion)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(StepLayout<EmptyView>.paper)
+        .environment(\.colorScheme, .light)
+        .contentShape(.rect)
+        .onTapGesture { leaveSplash() }
+        .task {
+            try? await Task.sleep(for: .seconds(Self.splashSeconds))
+            leaveSplash()
+        }
+    }
 
     private var welcome: some View {
         StepLayout(
@@ -57,7 +104,7 @@ struct OnboardingView: View {
             message: "Keep your vital signs, medicines and doctor visits organized in one place, backed up to your own iCloud, with reports you can share with your doctor.",
             footer: "Your health information stays on your iPhone and in your own iCloud account, protected by Apple's encryption. We never see it."
         ) {
-            primaryButton("Get Started") { advance() }
+            primaryButton("Get Started") { advance(from: .welcome) }
         }
     }
 
@@ -73,12 +120,12 @@ struct OnboardingView: View {
                 Task {
                     healthSkipped = false
                     await HealthStore.shared.requestAccess()
-                    advance()
+                    advance(from: .health)
                 }
             }
             skipButton {
                 healthSkipped = true
-                advance()
+                advance(from: .health)
             }
         }
     }
@@ -100,7 +147,7 @@ struct OnboardingView: View {
                 .padding(.bottom, 8)
             primaryButton("Continue", action: saveNameAndAdvance)
                 .disabled(trimmedName.isEmpty)
-            skipButton { advance() }
+            skipButton { advance(from: .name) }
         }
         .onAppear {
             if name.isEmpty, let me = owner, me.name != People.defaultOwnerName { name = me.name }
@@ -110,17 +157,36 @@ struct OnboardingView: View {
 
     private var unitsStep: some View {
         StepLayout(
-            symbol: "ruler.fill",
-            title: "Choose your units",
-            message: "Pick the units you're used to seeing. You can change them later in Settings."
+            symbol: "slider.horizontal.3",
+            title: "Your preferences",
+            message: "Pick the units you're used to seeing, and where the app opens. You can change these later in Settings."
         ) {
             VStack(spacing: 16) {
-                unitPicker("Blood sugar", isOn: $glucoseMmol, off: "mg/dL", on: "mmol/L")
-                unitPicker("Temperature", isOn: $celsius, off: "°F", on: "°C")
-                unitPicker("Weight", isOn: $kilograms, off: "lb", on: "kg")
+                UnitPicker(label: "Blood sugar", isOn: $glucoseMmol, off: "mg/dL", on: "mmol/L")
+                UnitPicker(label: "Temperature", isOn: $celsius, off: "°F", on: "°C")
+                UnitPicker(label: "Weight and height", isOn: $kilograms, off: "lb", on: "kg")
+                OpenToLogReadingToggle(isOn: $openToLogReading)
+                    .padding(.top, 4)
             }
             .padding(.bottom, 8)
-            primaryButton("Continue") { advance() }
+            primaryButton("Continue") { advance(from: .units) }
+        }
+    }
+
+    private var vitalsStep: some View {
+        StepLayout(
+            symbol: "checklist",
+            title: "What do you measure?",
+            message: "Check the readings you take regularly. Each gets a box on your reading form. You can add others any time."
+        ) {
+            VStack(spacing: 0) {
+                FormVitalsChecklist(stored: $formVitals)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 4)
+            .background(.fill.tertiary, in: .rect(cornerRadius: 12))
+            .padding(.bottom, 8)
+            primaryButton("Continue") { advance(from: .vitals) }
         }
     }
 
@@ -212,17 +278,6 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity)
     }
 
-    private func unitPicker(_ label: String, isOn: Binding<Bool>, off: String, on: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(.subheadline).foregroundStyle(.secondary)
-            Picker(label, selection: isOn) {
-                Text(off).tag(false)
-                Text(on).tag(true)
-            }
-            .pickerStyle(.segmented)
-        }
-    }
-
     // MARK: About you
 
     /// Where the date picker opens when there's nothing to start from; the app's
@@ -266,7 +321,7 @@ struct OnboardingView: View {
         me.birthDate = birthDate
         me.sex = sex
         me.heightCm = kilograms ? Double(height) : Double(height) * Self.cmPerInch
-        advance()
+        advance(from: .about)
     }
 
     // MARK: Flow
@@ -274,16 +329,33 @@ struct OnboardingView: View {
     private var owner: Person? { people.first { $0.isSelf } }
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    private func advance() {
+    /// Moves on only if still on `current`. Apple's Health sheet takes a moment to
+    /// appear, and a second tap in that gap used to skip a whole step.
+    private func advance(from current: Step) {
+        guard step == current else { return }
         guard let next = Step(rawValue: step.rawValue + 1) else { return finish() }
         nameFocused = false
+        isGoingBack = false
         step = next
+    }
+
+    /// Guards against the timer and a tap both firing.
+    private func leaveSplash() {
+        advance(from: .splash)
     }
 
     private func saveNameAndAdvance() {
         guard !trimmedName.isEmpty else { return }
         People.ensureSelf(in: context).name = trimmedName
-        advance()
+        advance(from: .name)
+    }
+
+    /// Whatever was saved on the earlier step is shown again there, so going back loses nothing.
+    private func goBack() {
+        guard step.rawValue > Step.welcome.rawValue, let previous = Step(rawValue: step.rawValue - 1) else { return }
+        nameFocused = false
+        isGoingBack = true
+        step = previous
     }
 
     private func finish() {

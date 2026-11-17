@@ -10,8 +10,9 @@ final class VitalsUITests: XCTestCase {
     @MainActor
     func testLogBloodPressureSavesToHealth() {
         let app = XCUIApplication()
-        // Setup has its own flow; start this test on the tabs.
-        app.launchArguments += ["-onboarding.done", "YES", "-onboarding.healthSkipped", "NO"]
+        // Setup has its own flow; start this test on the Vitals list, not the auto-opened form.
+        app.launchArguments += ["-onboarding.done", "YES", "-onboarding.healthSkipped", "NO",
+                                "-prefs.openToLogReading", "NO"]
         app.launch()
 
         allowHealthAccessIfAsked(app)
