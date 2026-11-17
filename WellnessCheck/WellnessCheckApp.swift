@@ -19,7 +19,7 @@ struct WellnessCheckApp: App {
 
     private let container: ModelContainer = {
         do {
-            return try ModelContainer(for: Person.self, Reading.self, Medication.self, DoseTime.self, DoseChange.self, DoseRecord.self)
+            return try ModelContainer(for: Person.self, Reading.self, Medication.self, DoseTime.self, DoseChange.self, DoseRecord.self, Doctor.self, Appointment.self)
         } catch {
             fatalError("Could not open the WellnessCheck data store: \(error)")
         }

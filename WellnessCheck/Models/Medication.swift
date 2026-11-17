@@ -12,7 +12,9 @@ final class Medication {
     /// Free text as printed on the label, such as "25 mg" or "100 units/mL".
     var strength: String = ""
     var purpose: String = ""
+    /// Superseded by `doctor`; kept so data saved before doctors existed still opens.
     var prescriber: String = ""
+    var doctor: Doctor?
     var unitRaw: String = DoseUnit.tablet.rawValue
     var frequencyRaw: String = MedFrequency.daily.rawValue
     /// Calendar weekday numbers (1 = Sunday) when the frequency is `.someDays`.

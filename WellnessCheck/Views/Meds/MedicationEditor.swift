@@ -13,7 +13,7 @@ struct MedicationEditor: View {
     @State private var name = ""
     @State private var strength = ""
     @State private var purpose = ""
-    @State private var prescriber = ""
+    @State private var doctor: Doctor?
     @State private var unit: DoseUnit = .tablet
     @State private var frequency: MedFrequency = .daily
     @State private var weekdays: Set<Int> = []
@@ -40,8 +40,9 @@ struct MedicationEditor: View {
                         .textInputAutocapitalization(.words)
                     TextField("Strength, like 25 mg", text: $strength)
                     TextField("What it's for", text: $purpose)
-                    TextField("Prescribed by", text: $prescriber)
-                        .textContentType(.name)
+                }
+                Section {
+                    DoctorPicker(title: "Prescribed by", selection: $doctor)
                 }
 
                 Section("How You Take It") {
@@ -196,7 +197,7 @@ struct MedicationEditor: View {
         name = med.name
         strength = med.strength
         purpose = med.purpose
-        prescriber = med.prescriber
+        doctor = med.doctor
         unit = med.unit
         frequency = med.frequency
         weekdays = Set(med.weekdays)
@@ -223,7 +224,7 @@ struct MedicationEditor: View {
         med.name = name.trimmingCharacters(in: .whitespaces)
         med.strength = strength.trimmingCharacters(in: .whitespaces)
         med.purpose = purpose.trimmingCharacters(in: .whitespaces)
-        med.prescriber = prescriber.trimmingCharacters(in: .whitespaces)
+        med.doctor = doctor
         med.unit = unit
         med.frequency = frequency
         med.weekdays = weekdays.sorted()

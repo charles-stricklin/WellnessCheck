@@ -32,6 +32,9 @@ final class Person {
     @Relationship(deleteRule: .cascade, inverse: \Medication.person)
     var medications: [Medication]? = []
 
+    @Relationship(deleteRule: .cascade, inverse: \Appointment.person)
+    var appointments: [Appointment]? = []
+
     init(name: String, relationship: String = "", isSelf: Bool = false) {
         self.name = name
         self.relationship = relationship

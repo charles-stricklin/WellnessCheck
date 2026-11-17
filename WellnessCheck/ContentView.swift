@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The five tabs from the PRD. Placeholders stand in until each screen is built.
+/// The five tabs from the PRD.
 struct ContentView: View {
     @AppStorage(Onboarding.doneKey) private var onboardingDone = false
 
@@ -14,24 +14,17 @@ struct ContentView: View {
                 VitalsView()
             }
             Tab("Appointments", systemImage: "calendar") {
-                placeholder("Appointments")
+                AppointmentsView()
             }
             Tab("Meds", systemImage: "pills") {
                 MedsView()
             }
             Tab("Doctors", systemImage: "stethoscope") {
-                placeholder("Doctors")
+                DoctorsView()
             }
             Tab("Settings", systemImage: "gearshape") {
                 SettingsView()
             }
-        }
-    }
-
-    private func placeholder(_ title: String) -> some View {
-        NavigationStack {
-            ContentUnavailableView(title, systemImage: "hammer", description: Text("Coming soon."))
-                .navigationTitle(title)
         }
     }
 }
