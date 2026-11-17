@@ -14,6 +14,13 @@ final class Medication {
     var purpose: String = ""
     /// Directions as printed on the label, such as "Take one tablet by mouth twice a day".
     var instructions: String = ""
+    var genericName: String = ""
+    /// Shape, color and imprint, such as "White oval, marked C 25", so it can be told apart.
+    var appearance: String = ""
+    @Attribute(.externalStorage) var pillPhoto: Data?
+    /// Whether the tablet has a score line for splitting.
+    var isScored: Bool = false
+    var refillsLeft: Int?
     /// Superseded by `doctor`; kept so data saved before doctors existed still opens.
     var prescriber: String = ""
     var doctor: Doctor?
@@ -221,9 +228,16 @@ extension Medication {
         return (changes ?? []).filter { $0.date >= cutoff }.max { $0.date < $1.date }
     }
 
+    /// For as-needed medicines, the one stored time holds only the amount per dose.
+    var asNeededAmount: Double { sortedTimes.first?.amount ?? 1 }
+
+    var lastTaken: Date? { (records ?? []).map(\.date).max() }
+
     /// "½ tablet at 8:00 AM, 1 tablet at 8:00 PM · Every day"
     var scheduleSummary: String {
-        if frequency == .asNeeded { return MedFrequency.asNeeded.label }
+        if frequency == .asNeeded {
+            return "\(MedFrequency.asNeeded.label) · \(Dose.describe(asNeededAmount, unit)) per dose"
+        }
         let times = sortedTimes.map { "\(Dose.describe($0.amount, unit)) at \($0.timeLabel)" }
         var days = frequency.label
         if frequency == .someDays {

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 /// Adding or changing a medicine. Works on a draft and writes on Save, so Cancel
 /// really cancels, and a changed schedule can be recorded as a dated dose change.
@@ -14,6 +15,12 @@ struct MedicationEditor: View {
     @State private var strength = ""
     @State private var purpose = ""
     @State private var instructions = ""
+    @State private var genericName = ""
+    @State private var appearance = ""
+    @State private var pillPhoto: Data?
+    @State private var photoItem: PhotosPickerItem?
+    @State private var isScored = false
+    @State private var refillsLeft = ""
     @State private var doctor: Doctor?
     @State private var unit: DoseUnit = .tablet
     @State private var frequency: MedFrequency = .daily
@@ -41,7 +48,32 @@ struct MedicationEditor: View {
                         .textInputAutocapitalization(.words)
                     TextField("Strength, like 25 mg", text: $strength)
                     TextField("What it's for", text: $purpose)
+                    TextField("Generic name (optional)", text: $genericName)
                     TextField("Directions from the label", text: $instructions, axis: .vertical)
+                }
+
+                Section {
+                    // A local copy: PhotosPicker builds its label off the main actor.
+                    let current = pillPhoto
+                    PhotosPicker(selection: $photoItem, matching: .images) {
+                        HStack {
+                            if let current, let image = UIImage(data: current) {
+                                Image(uiImage: image).resizable().scaledToFill()
+                                    .frame(width: 56, height: 56).clipShape(.rect(cornerRadius: 8))
+                            } else {
+                                Image(systemName: "camera").font(.title2).frame(width: 56, height: 56)
+                            }
+                            Text(current == nil ? "Add a Photo of the Pill" : "Change Photo")
+                        }
+                    }
+                    TextField("What it looks like, like White oval, C 25", text: $appearance)
+                    if unit.isCountable {
+                        Toggle("Scored for splitting", isOn: $isScored)
+                    }
+                } header: {
+                    Text("The Pill")
+                } footer: {
+                    Text("A photo and description help tell your pills apart at a glance.")
                 }
                 Section {
                     DoctorPicker(title: "Prescribed by", selection: $doctor)
@@ -57,7 +89,17 @@ struct MedicationEditor: View {
                     if frequency == .someDays { weekdayPicker }
                 }
 
-                if frequency != .asNeeded {
+                if frequency == .asNeeded {
+                    Section {
+                        if times.isEmpty {
+                            Button("Set the Amount", systemImage: "plus.circle") { times.append(DraftTime()) }
+                        } else {
+                            amountEditor(for: $times[0])
+                        }
+                    } header: {
+                        Text("Each Dose")
+                    }
+                } else {
                     Section {
                         ForEach($times) { $draft in timeRow($draft) }
                             .onDelete { times.remove(atOffsets: $0) }
@@ -77,6 +119,11 @@ struct MedicationEditor: View {
                     LabeledContent("On hand") {
                         TextField("Optional", text: $onHand)
                             .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("Refills left") {
+                        TextField("Optional", text: $refillsLeft)
+                            .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                     }
                 } footer: {
@@ -126,6 +173,9 @@ struct MedicationEditor: View {
             } message: {
                 Text("Its history of doses taken is deleted too.")
             }
+            .onChange(of: photoItem) {
+                Task { pillPhoto = try? await photoItem?.loadTransferable(type: Data.self) }
+            }
             .onAppear(perform: load)
         }
     }
@@ -156,6 +206,13 @@ struct MedicationEditor: View {
             DatePicker("Time", selection: draft.time, displayedComponents: .hourAndMinute)
                 .labelsHidden()
             Spacer()
+            amountEditor(for: draft)
+        }
+    }
+
+    @ViewBuilder
+    private func amountEditor(for draft: Binding<DraftTime>) -> some View {
+        HStack {
             if unit.isCountable {
                 // Halves, because "take one-half tablet" is common.
                 Stepper(value: draft.amount, in: 0.5...20, step: 0.5) {
@@ -189,7 +246,7 @@ struct MedicationEditor: View {
     private var canSave: Bool {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
         if frequency == .someDays && weekdays.isEmpty { return false }
-        if frequency != .asNeeded && (times.isEmpty || times.contains { amount(of: $0) == nil }) { return false }
+        if times.isEmpty || times.contains(where: { amount(of: $0) == nil }) { return false }
         return onHand.trimmingCharacters(in: .whitespaces).isEmpty || parse(onHand) != nil
     }
 
@@ -207,6 +264,11 @@ struct MedicationEditor: View {
         startDate = med.startDate
         status = med.status
         statusNote = med.statusNote
+        genericName = med.genericName
+        appearance = med.appearance
+        pillPhoto = med.pillPhoto
+        isScored = med.isScored
+        refillsLeft = med.refillsLeft.map(String.init) ?? ""
         onHand = med.onHand.map { $0.formatted(.number.grouping(.never)) } ?? ""
         let saved = med.sortedTimes.map { time in
             DraftTime(time: time.date(on: .now), amount: time.amount, amountText: Dose.number(time.amount))
@@ -236,11 +298,18 @@ struct MedicationEditor: View {
         med.status = status
         med.statusNote = status == .taking ? "" : statusNote.trimmingCharacters(in: .whitespacesAndNewlines)
         med.onHand = parse(onHand)
+        med.genericName = genericName.trimmingCharacters(in: .whitespaces)
+        med.appearance = appearance.trimmingCharacters(in: .whitespaces)
+        med.pillPhoto = pillPhoto
+        med.isScored = isScored
+        med.refillsLeft = Int(refillsLeft.trimmingCharacters(in: .whitespaces))
 
         (med.times ?? []).forEach(context.delete)
-        if frequency != .asNeeded {
+        // As-needed keeps just the first entry, for its amount per dose.
+        let kept = frequency == .asNeeded ? Array(times.prefix(1)) : times
+        do {
             let calendar = Calendar.current
-            for draft in times {
+            for draft in kept {
                 guard let amount = amount(of: draft) else { continue }
                 let parts = calendar.dateComponents([.hour, .minute], from: draft.time)
                 let time = DoseTime(hour: parts.hour ?? 8, minute: parts.minute ?? 0, amount: amount)

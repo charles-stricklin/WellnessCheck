@@ -18,8 +18,11 @@ struct MedsView: View {
                     if !meds.isEmpty {
                         Section(status.label) {
                             ForEach(meds) { med in
-                                Button { editing = med } label: { MedRow(med: med) }
-                                    .buttonStyle(.plain)
+                                // A tap rather than a Button, so the row's own "Took a Dose" button works.
+                                MedRow(med: med)
+                                    .onTapGesture { editing = med }
+                                    .accessibilityAddTraits(.isButton)
+                                    .accessibilityAction(named: "Edit") { editing = med }
                             }
                         }
                     }
@@ -79,11 +82,29 @@ struct MedsView: View {
 }
 
 private struct MedRow: View {
+    @Environment(\.modelContext) private var context
     let med: Medication
 
     var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            if let data = med.pillPhoto, let image = UIImage(data: data) {
+                Image(uiImage: image).resizable().scaledToFill()
+                    .frame(width: 48, height: 48).clipShape(.rect(cornerRadius: 8))
+                    .accessibilityHidden(true)
+            }
+            details
+        }
+    }
+
+    private var details: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(med.title).font(.headline)
+            if !med.genericName.isEmpty {
+                Text(med.genericName).font(.subheadline).foregroundStyle(.secondary)
+            }
+            if !med.appearance.isEmpty {
+                Text(med.appearance).font(.subheadline).foregroundStyle(.secondary)
+            }
             Text(med.scheduleSummary)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -97,6 +118,22 @@ private struct MedRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .italic()
+            }
+            if let last = med.lastTaken {
+                Text("Last taken \(last.formatted(.relative(presentation: .named)))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            if let refills = med.refillsLeft {
+                Text(refills == 1 ? "1 refill left" : "\(refills) refills left")
+                    .font(.subheadline)
+                    .foregroundStyle(refills == 0 ? .orange : .secondary)
+            }
+            // As-needed medicines never come up on the checklist, so they're logged here.
+            if med.frequency == .asNeeded && med.status == .taking {
+                Button("Took a Dose", systemImage: "checkmark.circle", action: logDose)
+                    .buttonStyle(.bordered)
+                    .padding(.top, 2)
             }
             if med.needsTimes {
                 Label("Tap to set when you take it", systemImage: "clock.badge.exclamationmark")
@@ -120,6 +157,15 @@ private struct MedRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
         .padding(.vertical, 2)
+    }
+
+    private func logDose() {
+        let amount = med.asNeededAmount
+        let record = DoseRecord(date: .now, scheduledFor: .now, amount: amount)
+        context.insert(record)
+        record.medication = med
+        if let onHand = med.onHand { med.onHand = max(0, onHand - amount) }
+        try? context.save()
     }
 }
 
