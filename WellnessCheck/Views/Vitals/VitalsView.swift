@@ -47,6 +47,7 @@ struct VitalsView: View {
     @AppStorage(Preferences.openToLogReadingKey) private var openToLogReading = true
     /// Once per launch: switching tabs and coming back shouldn't pop the form again.
     @MainActor private static var didOpenLogOnLaunch = false
+    @State private var router = AppRouter.shared
 
     var body: some View {
         NavigationStack {
@@ -100,11 +101,18 @@ struct VitalsView: View {
                 // Respect a Skip during setup; connecting later will live in Settings.
                 if !healthSkipped { await health.requestAccess() }
                 // After Apple's permission sheet, so the two never collide on screen.
-                if openToLogReading && !Self.didOpenLogOnLaunch {
+                if (openToLogReading || router.openLogForm) && !Self.didOpenLogOnLaunch {
                     Self.didOpenLogOnLaunch = true
+                    router.openLogForm = false
                     isLogging = true
                 }
                 await health.refresh()
+            }
+            // A tapped reminder: open the form, unless it's already up.
+            .onChange(of: router.openLogForm) {
+                guard router.openLogForm else { return }
+                router.openLogForm = false
+                isLogging = true
             }
             // Pick up readings a cuff or scale added while the app was in the background.
             .onChange(of: scenePhase) {

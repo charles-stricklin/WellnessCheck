@@ -1,8 +1,11 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct WellnessCheckApp: App {
+    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -24,6 +27,32 @@ struct WellnessCheckApp: App {
             fatalError("Could not open the WellnessCheck data store: \(error)")
         }
     }()
+}
+
+/// Receives taps on reminders. It has to be set as the delegate before launch
+/// finishes, or a tap that launched the app would be missed.
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                            didReceive response: UNNotificationResponse) async {
+        let opensForm = response.notification.request.content.userInfo[Reminders.openFormKey] as? Bool ?? false
+        guard opensForm else { return }
+        await MainActor.run {
+            AppRouter.shared.selectedTab = .vitals
+            AppRouter.shared.openLogForm = true
+        }
+    }
+
+    /// Show reminders even while the app is open, since that's often when the time arrives.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                            willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
 }
 
 #if DEBUG

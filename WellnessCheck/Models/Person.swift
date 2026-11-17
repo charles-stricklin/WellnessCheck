@@ -21,6 +21,14 @@ final class Person {
     var sexRaw: String?
     var heightCm: Double?
 
+    // Medical ID, for whoever needs it in a hurry. Free text: people copy it from a card.
+    /// Such as "O Positive (O+)".
+    var bloodType: String = ""
+    var allergies: [String] = []
+    var emergencyName: String = ""
+    var emergencyRelationship: String = ""
+    var emergencyPhone: String = ""
+
     var sex: Sex? {
         get { sexRaw.flatMap(Sex.init(rawValue:)) }
         set { sexRaw = newValue?.rawValue }
