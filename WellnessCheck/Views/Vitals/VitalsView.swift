@@ -44,6 +44,7 @@ struct VitalsView: View {
     @State private var health = HealthStore.shared
     @AppStorage(Onboarding.healthSkippedKey) private var healthSkipped = false
     @State private var isLogging = false
+    @State private var isShowingReport = false
     @AppStorage(Preferences.openToLogReadingKey) private var openToLogReading = true
     /// Once per launch: switching tabs and coming back shouldn't pop the form again.
     @MainActor private static var didOpenLogOnLaunch = false
@@ -85,6 +86,10 @@ struct VitalsView: View {
             .navigationTitle(activePerson.map { $0.isSelf ? "Vitals" : $0.name } ?? "Vitals")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { personMenu }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Report for Your Doctor", systemImage: "doc.text") { isShowingReport = true }
+                        .disabled(activePerson == nil)
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Log Reading", systemImage: "plus") { isLogging = true }
                         .disabled(activePerson == nil)
@@ -92,6 +97,9 @@ struct VitalsView: View {
             }
             .sheet(isPresented: $isLogging) {
                 if let activePerson { LogReadingView(person: activePerson) }
+            }
+            .sheet(isPresented: $isShowingReport) {
+                if let activePerson { ReportView(person: activePerson) }
             }
             .sheet(isPresented: $isAddingPerson) {
                 AddPersonView { activePersonID = $0.id.uuidString }
