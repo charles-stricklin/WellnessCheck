@@ -21,6 +21,9 @@ struct LogReadingView: View {
     @State private var dueDoses: [DueDose] = []
     @State private var takenDoses: Set<String> = []
     @State private var medsExpanded = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric private var boxWidth = 60.0
+    @ScaledMetric private var unitWidth = 48.0
 
     private enum EntryState { case empty, complete, incomplete }
 
@@ -78,9 +81,27 @@ struct LogReadingView: View {
     /// One line per vital: name on the left, box(es) and unit on the right.
     private func row(for kind: VitalKind) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
+            // At the largest text sizes the name and boxes can't share a line, so stack them.
+            if typeSize.isAccessibilitySize {
                 Label(kind.title, systemImage: kind.symbol)
-                Spacer(minLength: 4)
+                HStack(spacing: 8) { boxes(for: kind) }
+            } else {
+                HStack(spacing: 8) {
+                    Label(kind.title, systemImage: kind.symbol)
+                    Spacer(minLength: 4)
+                    boxes(for: kind)
+                }
+            }
+            if state(of: kind) == .incomplete {
+                Text(kind == .bloodPressure ? "Enter both numbers, or leave both empty." : "That doesn't look like a number.")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func boxes(for kind: VitalKind) -> some View {
                 if kind == .bloodPressure {
                     numberBox("Systolic, top number", text: binding(\.first, kind))
                     Text("/").foregroundStyle(.secondary).accessibilityHidden(true)
@@ -91,15 +112,8 @@ struct LogReadingView: View {
                 Text(Units.unitLabel(for: kind))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .frame(width: 48, alignment: .leading)
+                    .frame(width: unitWidth, alignment: .leading)
                     .accessibilityHidden(true)
-            }
-            if state(of: kind) == .incomplete {
-                Text(kind == .bloodPressure ? "Enter both numbers, or leave both empty." : "That doesn't look like a number.")
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-            }
-        }
     }
 
     /// One line that opens into the checklist, so 12 morning medicines don't bury the vitals.
@@ -168,7 +182,7 @@ struct LogReadingView: View {
             .multilineTextAlignment(.center)
             .monospacedDigit()
             .padding(.vertical, 8)
-            .frame(width: 60)
+            .frame(width: boxWidth)
             .background(.fill.tertiary, in: .rect(cornerRadius: 8))
             .accessibilityLabel(accessibilityName)
     }
