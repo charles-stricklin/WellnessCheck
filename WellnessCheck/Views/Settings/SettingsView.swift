@@ -103,6 +103,14 @@ struct SettingsView: View {
                 } footer: {
                     Text("When locked, WellnessCheck asks for Face ID, or your passcode, each time it opens.")
                 }
+
+                Section {
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        Label("About WellnessCheck", systemImage: "info.circle")
+                    }
+                }
             }
             .navigationTitle("Settings")
             // Just looks on appear; asking is saved for when they change a reminder setting.
