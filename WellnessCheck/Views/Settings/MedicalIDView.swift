@@ -7,6 +7,7 @@ struct MedicalIDView: View {
     @Bindable var person: Person
     @AppStorage(Units.kilogramsKey) private var metric = false
     @State private var newAllergy = ""
+    @State private var isImportingAllergies = false
     @FocusState private var allergyFocused: Bool
 
     static let bloodTypes = ["O Positive (O+)", "O Negative (O−)", "A Positive (A+)", "A Negative (A−)",
@@ -61,6 +62,9 @@ struct MedicalIDView: View {
                         Button("Add", action: addAllergy)
                     }
                 }
+                if person.isSelf && HealthRecords.isAvailable {
+                    Button("Add from Health Records", systemImage: "heart.text.clipboard") { isImportingAllergies = true }
+                }
             } header: {
                 Text("Allergies")
             } footer: {
@@ -83,6 +87,7 @@ struct MedicalIDView: View {
                 Text("Emergency Contact")
             }
         }
+        .sheet(isPresented: $isImportingAllergies) { ImportAllergiesView(person: person) }
         .navigationTitle("Medical ID")
         .navigationBarTitleDisplayMode(.inline)
     }

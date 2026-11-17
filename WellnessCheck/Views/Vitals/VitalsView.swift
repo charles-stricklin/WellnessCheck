@@ -67,6 +67,16 @@ struct VitalsView: View {
                     .listRowBackground(Color.clear)
                 }
 
+                if activePerson?.isSelf == true && HealthRecords.isAvailable {
+                    Section {
+                        NavigationLink {
+                            LabResultsView()
+                        } label: {
+                            Label("Lab Results", systemImage: "flask")
+                        }
+                    }
+                }
+
                 ForEach(days, id: \.self) { day in
                     Section(day.formatted(.dateTime.weekday(.wide).month().day())) {
                         ForEach(entries(on: day)) { entry in

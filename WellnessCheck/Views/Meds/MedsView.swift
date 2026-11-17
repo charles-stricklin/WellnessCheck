@@ -8,6 +8,7 @@ struct MedsView: View {
     @AppStorage("activePersonID") private var activePersonID = ""
     @State private var editing: Medication?
     @State private var isAdding = false
+    @State private var isImporting = false
 
     var body: some View {
         NavigationStack {
@@ -36,12 +37,23 @@ struct MedsView: View {
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Add Medicine", systemImage: "plus") { isAdding = true }
-                        .disabled(activePerson == nil)
+                    // Records are the owner's only, so for family it's a plain button.
+                    if activePerson?.isSelf == true && HealthRecords.isAvailable {
+                        Menu("Add Medicine", systemImage: "plus") {
+                            Button("Add a Medicine", systemImage: "square.and.pencil") { isAdding = true }
+                            Button("Add from Health Records", systemImage: "heart.text.clipboard") { isImporting = true }
+                        }
+                    } else {
+                        Button("Add Medicine", systemImage: "plus") { isAdding = true }
+                            .disabled(activePerson == nil)
+                    }
                 }
             }
             .sheet(isPresented: $isAdding) {
                 if let activePerson { MedicationEditor(person: activePerson) }
+            }
+            .sheet(isPresented: $isImporting) {
+                if let activePerson { ImportMedicationsView(person: activePerson) }
             }
             .sheet(item: $editing) { med in
                 if let activePerson { MedicationEditor(person: activePerson, medication: med) }
@@ -85,6 +97,11 @@ private struct MedRow: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .italic()
+            }
+            if med.needsTimes {
+                Label("Tap to set when you take it", systemImage: "clock.badge.exclamationmark")
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
             }
             if med.isRunningLow, let daysLeft = med.daysLeft {
                 Label(daysLeft == 0 ? "Out, or nearly. Request a refill."

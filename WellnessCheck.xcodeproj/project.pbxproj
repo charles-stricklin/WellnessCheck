@@ -255,9 +255,9 @@
 				DEVELOPMENT_TEAM = BXFM92GSKV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WellnessCheck-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WellnessCheck;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_FILE = "WellnessCheck-Info.plist";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "WellnessCheck can use Face ID to keep your health information private.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "WellnessCheck shows readings from your blood pressure cuff, scale, watch and other devices alongside the ones you log yourself.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "WellnessCheck saves the readings you log to Apple Health, so all your health data stays in one place.";
@@ -291,9 +291,9 @@
 				DEVELOPMENT_TEAM = BXFM92GSKV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WellnessCheck-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WellnessCheck;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_FILE = "WellnessCheck-Info.plist";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "WellnessCheck can use Face ID to keep your health information private.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "WellnessCheck shows readings from your blood pressure cuff, scale, watch and other devices alongside the ones you log yourself.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "WellnessCheck saves the readings you log to Apple Health, so all your health data stays in one place.";

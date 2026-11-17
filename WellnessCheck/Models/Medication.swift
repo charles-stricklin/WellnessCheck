@@ -12,6 +12,8 @@ final class Medication {
     /// Free text as printed on the label, such as "25 mg" or "100 units/mL".
     var strength: String = ""
     var purpose: String = ""
+    /// Directions as printed on the label, such as "Take one tablet by mouth twice a day".
+    var instructions: String = ""
     /// Superseded by `doctor`; kept so data saved before doctors existed still opens.
     var prescriber: String = ""
     var doctor: Doctor?
@@ -207,6 +209,9 @@ extension Medication {
 
     /// About a week left is enough time to get a refill through most pharmacies.
     static let lowSupplyDays = 7
+    /// Added from health records but not yet given times, so it can't be reminded or checked off.
+    var needsTimes: Bool { status == .taking && frequency != .asNeeded && (times ?? []).isEmpty }
+
     var isRunningLow: Bool { status == .taking && (daysLeft ?? .max) <= Self.lowSupplyDays }
 
     /// A dose change in the last two weeks, worth pointing out at the checklist

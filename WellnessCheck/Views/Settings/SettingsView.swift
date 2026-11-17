@@ -105,10 +105,11 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .task { await checkNotifications() }
-            .onChange(of: medicineReminders) { Task { await checkNotifications() } }
-            .onChange(of: appointmentReminders) { Task { await checkNotifications() } }
-            .onChange(of: readingTimes) { Task { await checkNotifications() } }
+            // Just looks on appear; asking is saved for when they change a reminder setting.
+            .task { await checkNotifications(ask: false) }
+            .onChange(of: medicineReminders) { Task { await checkNotifications(ask: true) } }
+            .onChange(of: appointmentReminders) { Task { await checkNotifications(ask: true) } }
+            .onChange(of: readingTimes) { Task { await checkNotifications(ask: true) } }
         }
     }
 
@@ -119,8 +120,8 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
 
     /// Reschedules for the new choices, which also asks permission the first time.
-    private func checkNotifications() async {
-        await Reminders.reschedule(in: context, askPermission: true)
+    private func checkNotifications(ask: Bool) async {
+        await Reminders.reschedule(in: context, askPermission: ask)
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         notificationsDenied = status == .denied
     }

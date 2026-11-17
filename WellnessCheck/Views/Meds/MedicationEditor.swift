@@ -13,6 +13,7 @@ struct MedicationEditor: View {
     @State private var name = ""
     @State private var strength = ""
     @State private var purpose = ""
+    @State private var instructions = ""
     @State private var doctor: Doctor?
     @State private var unit: DoseUnit = .tablet
     @State private var frequency: MedFrequency = .daily
@@ -40,6 +41,7 @@ struct MedicationEditor: View {
                         .textInputAutocapitalization(.words)
                     TextField("Strength, like 25 mg", text: $strength)
                     TextField("What it's for", text: $purpose)
+                    TextField("Directions from the label", text: $instructions, axis: .vertical)
                 }
                 Section {
                     DoctorPicker(title: "Prescribed by", selection: $doctor)
@@ -197,6 +199,7 @@ struct MedicationEditor: View {
         name = med.name
         strength = med.strength
         purpose = med.purpose
+        instructions = med.instructions
         doctor = med.doctor
         unit = med.unit
         frequency = med.frequency
@@ -224,6 +227,7 @@ struct MedicationEditor: View {
         med.name = name.trimmingCharacters(in: .whitespaces)
         med.strength = strength.trimmingCharacters(in: .whitespaces)
         med.purpose = purpose.trimmingCharacters(in: .whitespaces)
+        med.instructions = instructions.trimmingCharacters(in: .whitespacesAndNewlines)
         med.doctor = doctor
         med.unit = unit
         med.frequency = frequency
