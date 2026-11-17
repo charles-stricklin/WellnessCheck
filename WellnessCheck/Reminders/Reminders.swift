@@ -29,6 +29,13 @@ enum Reminders {
     static let appointmentsKey = "reminders.appointments"
     /// Times of day for reading reminders, as "HH:mm" separated by commas.
     static let readingTimesKey = "reminders.readingTimes"
+    static let afterMealsKey = "reminders.afterMeals"
+    /// Breakfast, lunch and dinner, as "HH:mm" separated by commas.
+    static let mealTimesKey = "reminders.mealTimes"
+    static let defaultMealTimes = "08:00,12:00,18:00"
+    /// Two hours after eating is the usual time for an after-meal blood sugar check.
+    static let afterMealDelay: TimeInterval = 2 * 3600
+    static let mealNames = [String(localized: "breakfast"), String(localized: "lunch"), String(localized: "dinner")]
 
     static let daysAhead = 10
     private static let maxScheduled = 60
@@ -46,6 +53,14 @@ enum Reminders {
             return DateComponents(hour: bits[0], minute: bits[1])
         }
         .sorted { ($0.hour ?? 0, $0.minute ?? 0) < ($1.hour ?? 0, $1.minute ?? 0) }
+    }
+
+    /// Meal times keep their order (breakfast, lunch, dinner) rather than being sorted.
+    static func mealTimes(from stored: String) -> [DateComponents] {
+        stored.split(separator: ",").compactMap { part in
+            let bits = part.split(separator: ":").compactMap { Int($0) }
+            return bits.count == 2 ? DateComponents(hour: bits[0], minute: bits[1]) : nil
+        }
     }
 
     static func store(_ times: [DateComponents]) -> String {
@@ -75,6 +90,8 @@ enum Reminders {
     private struct Slot {
         var medicines: [String] = []
         var readings = false
+        /// "breakfast" when this is the after-meal blood sugar check.
+        var afterMeal: String?
     }
 
     private static func buildRequests(in context: ModelContext) -> [UNNotificationRequest] {
@@ -108,6 +125,18 @@ enum Reminders {
             }
         }
 
+        if defaults.bool(forKey: afterMealsKey) {
+            let meals = mealTimes(from: defaults.string(forKey: mealTimesKey) ?? defaultMealTimes)
+            for (index, meal) in meals.enumerated() {
+                for day in days {
+                    guard let ate = calendar.date(bySettingHour: meal.hour ?? 0, minute: meal.minute ?? 0, second: 0, of: day) else { continue }
+                    let at = ate.addingTimeInterval(afterMealDelay)
+                    guard at > now else { continue }
+                    slots[at, default: Slot()].afterMeal = mealNames[min(index, mealNames.count - 1)]
+                }
+            }
+        }
+
         var requests: [(Date, UNNotificationRequest)] = slots.map { at, slot in
             let content = UNMutableNotificationContent()
             content.sound = .default
@@ -119,6 +148,11 @@ enum Reminders {
             default: content.title = String(localized: "Time to take your readings")
             }
             if !meds.isEmpty { content.body = list(meds) }
+            if let meal = slot.afterMeal {
+                let check = String(localized: "Check your blood sugar: 2 hours after \(meal).")
+                if meds.isEmpty && !slot.readings { content.title = String(localized: "Time to check your blood sugar") }
+                content.body = content.body.isEmpty ? check : "\(content.body)\n\(check)"
+            }
             return (at, request(id: "slot.\(Int(at.timeIntervalSince1970))", at: at, content: content))
         }
 

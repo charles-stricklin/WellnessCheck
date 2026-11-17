@@ -39,6 +39,8 @@ struct SettingsView: View {
     @AppStorage(Reminders.medicinesKey) private var medicineReminders = true
     @AppStorage(Reminders.appointmentsKey) private var appointmentReminders = true
     @AppStorage(Reminders.readingTimesKey) private var readingTimes = ""
+    @AppStorage(Reminders.afterMealsKey) private var afterMeals = false
+    @AppStorage(Reminders.mealTimesKey) private var mealTimes = Reminders.defaultMealTimes
     @State private var notificationsDenied = false
 
     var body: some View {
@@ -65,6 +67,8 @@ struct SettingsView: View {
                     Toggle("Medicine reminders", isOn: $medicineReminders)
                     Toggle("Appointment reminders", isOn: $appointmentReminders)
                     ReadingTimesEditor(stored: $readingTimes)
+                    Toggle("Blood sugar 2 hours after meals", isOn: $afterMeals)
+                    if afterMeals { MealTimesEditor(stored: $mealTimes) }
                 } header: {
                     Text("Reminders")
                 } footer: {
@@ -123,6 +127,8 @@ struct SettingsView: View {
             .onChange(of: medicineReminders) { Task { await checkNotifications(ask: true) } }
             .onChange(of: appointmentReminders) { Task { await checkNotifications(ask: true) } }
             .onChange(of: readingTimes) { Task { await checkNotifications(ask: true) } }
+            .onChange(of: afterMeals) { Task { await checkNotifications(ask: true) } }
+            .onChange(of: mealTimes) { Task { await checkNotifications(ask: false) } }
         }
     }
 
@@ -137,6 +143,25 @@ struct SettingsView: View {
         await Reminders.reschedule(in: context, askPermission: ask)
         let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
         notificationsDenied = status == .denied
+    }
+}
+
+/// Usual breakfast, lunch and dinner times, for the after-meal blood sugar reminder.
+private struct MealTimesEditor: View {
+    @Binding var stored: String
+
+    var body: some View {
+        let times = Reminders.mealTimes(from: stored)
+        ForEach(Array(Reminders.mealNames.enumerated()), id: \.offset) { index, meal in
+            DatePicker("Usual \(meal)", selection: Binding {
+                Calendar.current.date(from: times.indices.contains(index) ? times[index] : DateComponents(hour: 8)) ?? .now
+            } set: { date in
+                var next = times
+                while next.count < Reminders.mealNames.count { next.append(DateComponents(hour: 12, minute: 0)) }
+                next[index] = Calendar.current.dateComponents([.hour, .minute], from: date)
+                stored = next.map { String(format: "%02d:%02d", $0.hour ?? 0, $0.minute ?? 0) }.joined(separator: ",")
+            }, displayedComponents: .hourAndMinute)
+        }
     }
 }
 
