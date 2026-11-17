@@ -17,6 +17,10 @@ struct LogReadingView: View {
     @State private var extras: [VitalKind] = []
     @State private var date = Date.now
     @State private var note = ""
+    /// Worked out once when the form opens, so the list doesn't shift while they're using it.
+    @State private var dueDoses: [DueDose] = []
+    @State private var takenDoses: Set<String> = []
+    @State private var medsExpanded = false
 
     private enum EntryState { case empty, complete, incomplete }
 
@@ -26,8 +30,10 @@ struct LogReadingView: View {
                 Section {
                     ForEach(shownKinds) { kind in row(for: kind) }
                 } footer: {
-                    Text("Fill in what you took. Anything left empty isn't saved.")
+                    Text("Fill in the readings you took. Anything left empty isn't saved.")
                 }
+
+                if !dueDoses.isEmpty { medsSection }
 
                 if !addableKinds.isEmpty {
                     Section {
@@ -60,6 +66,10 @@ struct LogReadingView: View {
                     Button("Save", action: save).disabled(!canSave)
                 }
             }
+            .onAppear {
+                guard dueDoses.isEmpty else { return }
+                dueDoses = MedSchedule.due(for: person.medications ?? [])
+            }
         }
     }
 
@@ -90,6 +100,65 @@ struct LogReadingView: View {
                     .foregroundStyle(.red)
             }
         }
+    }
+
+    /// One line that opens into the checklist, so 12 morning medicines don't bury the vitals.
+    private var medsSection: some View {
+        Section {
+            DisclosureGroup(isExpanded: $medsExpanded) {
+                ForEach(dueDoses) { dose in doseRow(dose) }
+                Button(allTaken ? "Uncheck All" : "Check All") {
+                    takenDoses = allTaken ? [] : Set(dueDoses.map(\.id))
+                }
+            } label: {
+                HStack {
+                    Label(dueDoses.count == 1 ? "1 medicine due" : "\(dueDoses.count) medicines due", systemImage: "pills.fill")
+                    Spacer()
+                    Text("\(takenDoses.count) of \(dueDoses.count) taken")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+        } footer: {
+            Text("Check off what you took. Anything left unchecked isn't recorded and stays on your list.")
+        }
+    }
+
+    private var allTaken: Bool { takenDoses.count == dueDoses.count }
+
+    private func doseRow(_ dose: DueDose) -> some View {
+        let taken = takenDoses.contains(dose.id)
+        let med = dose.medication
+        return Button {
+            if taken { takenDoses.remove(dose.id) } else { takenDoses.insert(dose.id) }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: taken ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundStyle(taken ? Color.accentColor : .secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(med.title).foregroundStyle(.primary)
+                    Text("\(Dose.describe(dose.time.amount, med.unit)) · \(dose.time.timeLabel)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    if let change = med.recentChange {
+                        Text("Changed \(change.date.formatted(.dateTime.month().day())): \(change.summary)")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                    if med.isRunningLow {
+                        Text("Running low")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(taken ? .isSelected : [])
     }
 
     /// A visibly boxed field, so it's obvious where to tap.
@@ -143,7 +212,7 @@ struct LogReadingView: View {
     /// Something to save, and nothing half-entered that would silently be dropped.
     private var canSave: Bool {
         let states = shownKinds.map(state(of:))
-        return states.contains(.complete) && !states.contains(.incomplete)
+        return (states.contains(.complete) || !takenDoses.isEmpty) && !states.contains(.incomplete)
     }
 
     private func save() {
@@ -161,6 +230,14 @@ struct LogReadingView: View {
             context.insert(reading)
             reading.person = person
             saved.append(reading)
+        }
+        for dose in dueDoses where takenDoses.contains(dose.id) {
+            let record = DoseRecord(date: date, scheduledFor: dose.scheduledFor, amount: dose.time.amount)
+            context.insert(record)
+            record.medication = dose.medication
+            if let onHand = dose.medication.onHand {
+                dose.medication.onHand = max(0, onHand - dose.time.amount)
+            }
         }
         // Apple Health holds the phone owner's data only. The readings are safe in the
         // app either way; Health is a copy, so a refusal just leaves the ID empty.

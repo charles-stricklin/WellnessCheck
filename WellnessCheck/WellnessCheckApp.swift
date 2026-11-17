@@ -19,7 +19,7 @@ struct WellnessCheckApp: App {
 
     private let container: ModelContainer = {
         do {
-            return try ModelContainer(for: Person.self, Reading.self)
+            return try ModelContainer(for: Person.self, Reading.self, Medication.self, DoseTime.self, DoseChange.self, DoseRecord.self)
         } catch {
             fatalError("Could not open the WellnessCheck data store: \(error)")
         }
@@ -52,6 +52,28 @@ enum SampleData {
         let spouseReading = Reading(kind: .bloodPressure, date: ago(3), value: 131, secondValue: 85)
         context.insert(spouseReading)
         spouseReading.person = spouse
+
+        // Made-up medicines so the Meds tab and the form's checklist have something to show.
+        let me = People.ensureSelf(in: context)
+        let samples: [(String, String, String, [(Int, Double)], Double)] = [
+            ("Lisinopril", "10 mg", "Blood pressure", [(8, 1)], 30),
+            ("Metoprolol", "50 mg", "Blood pressure", [(8, 0.5), (20, 0.5)], 6),
+            ("Vitamin B12", "1000 mcg", "Supplement", [(8, 1)], 90),
+        ]
+        for (name, strength, purpose, times, onHand) in samples {
+            let med = Medication(name: name)
+            med.strength = strength
+            med.purpose = purpose
+            med.onHand = onHand
+            med.startDate = ago(24 * 60)
+            context.insert(med)
+            med.person = me
+            for (hour, amount) in times {
+                let time = DoseTime(hour: hour, minute: 0, amount: amount)
+                context.insert(time)
+                time.medication = med
+            }
+        }
         try? context.save()
     }
 }

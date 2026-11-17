@@ -17,7 +17,7 @@ struct ContentView: View {
                 placeholder("Appointments")
             }
             Tab("Meds", systemImage: "pills") {
-                placeholder("Meds")
+                MedsView()
             }
             Tab("Doctors", systemImage: "stethoscope") {
                 placeholder("Doctors")
